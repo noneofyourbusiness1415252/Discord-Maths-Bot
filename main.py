@@ -180,6 +180,181 @@ async def fml_error(ctx, error):
     await formula_error(ctx, error)
 
 
+@bot.command(name='CuboidVolume')
+async def CuV(ctx, length:int, height:int, width:int):
+    await ctx.send(length * height * width)
+
+
+@CuV.error
+async def CuVError(ctx, error:str):
+    await ctx.send(f'''
+    Error: Please make sure your command makes sense and is set out as:
+    `=CuV <height> <width> length>`. 
+    This was the error encountered:
+    {error}
+    ''')
+
+
+@bot.command(name='CuV')
+async def CuboidVolume(ctx, length:int, height:int, width:int):
+    await CuV(ctx, length, height, width)
+
+
+@CuboidVolume.error
+async def CUV_Error(ctx, error:str):
+    await CuVError(ctx, error)
+
+
+@bot.command(name='PyramidVolume')
+async def PV(ctx, base_area:int, height:int):
+    await ctx.send((1 / 3) * base_area * height)
+
+
+@PV.error
+async def PVError(ctx, error:str):
+    await ctx.send(f'''
+    Error: Please make sure your command makes sense and is set out as:
+    `=PV <base_area> <height>`. 
+    This was the error encountered:
+    {error}
+    ''')
+
+
+@bot.command(name='PV')
+async def PyramidVolume(ctx, base_area:int, height:int):
+    await PV(ctx, base_area, height)
+
+
+@PyramidVolume.error
+async def PV_Error(ctx, error:str):
+    await PVError(ctx, error)
+
+
+@bot.command(name='SphereVolume')
+async def SV(ctx, radius:int):
+    await ctx.send((4 / 3) * pi * radius ** 3)
+
+
+@SV.error
+async def SVError(ctx, error:str):
+    await ctx.send(f'''
+    Error: Please make sure your command makes sense and is set out as:
+    `=SV <radius>`. 
+    This was the error encountered:
+    {error}
+    ''')
+
+
+@bot.command(name='SV')
+async def SphereVolume(ctx, radius:int):
+    await SV(ctx, radius)
+
+
+@SphereVolume.error
+async def SV_Error(ctx, error:str):
+    await SVError(ctx, error)
+
+
+@bot.command(name='ConeVolume')
+async def CoV(ctx, radius:int, height:int):
+    await ctx.send((1 / 3) * pi * radius ** 2 * height)
+
+
+@CoV.error
+async def CoVError(ctx, error:str):
+    await ctx.send(f'''
+    Error: Please make sure your command makes sense and is set out as:
+    `=CoV <radius> <height>`.
+    This was the error encountered:
+    {error}
+    ''')
+
+
+@bot.command(name='CoV')
+async def ConeVolume(ctx, radius:int, height:int):
+    await CoV(ctx, radius, height)
+
+
+@ConeVolume.error
+async def CoV_Error(ctx, error:str):
+    await CoVError(ctx, error)
+
+
+@bot.command(name='CylinderVolume')
+async def CyV(ctx, radius:int, height:int):
+    await ctx.send(pi * radius ** 2 * height)
+
+
+@CyV.error
+async def CyVError(ctx, error:str):
+    await ctx.send(f'''
+    Error: Please make sure your command makes sense and is set out as:
+    `=CyV <radius> <height>`. 
+    This was the error encountered:
+    {error}
+    ''')
+
+
+@bot.command(name='CyV')
+async def CylinderVolume(ctx, radius:int, height:int):
+    await CyV(ctx, radius, height)
+
+
+@CylinderVolume.error
+async def CyV_Error(ctx, error:str):
+    await CyVError(ctx, error)
+
+
+@bot.command(name='PentagonalPrismVolume')
+async def PPV(ctx, height:int, base_edge_length:int):
+    await ctx.send((5 / 4) * height * base_edge_length ** 2 * (1 + 2 / sqrt(5)))
+
+
+@PPV.error
+async def PPVError(ctx, error:str):
+    await ctx.send(f'''
+    Error: Please make sure your command makes sense and is set out as:
+    `=PPV <height> <base edge length>`. 
+    This was the error encountered:
+    {error}
+    ''')
+
+
+@bot.command(name='PPV')
+async def PentagonalPrismVolume(ctx, height:int, base_edge_length:int):
+    await PPV(ctx, height, base_edge_length)
+
+
+@PentagonalPrismVolume.error
+async def PPV_Error(ctx, error:str):
+    await PPVError(ctx, error)
+
+
+@bot.command(name='HexagonalPrismVolume')
+async def HPV(ctx, height:int, base_edge_length:int):
+    await ctx.send((3 * sqrt(3) / 2) * height * base_edge_length ** 2)
+
+
+@HPV.error
+async def HPVError(ctx, error:str):
+    await ctx.send(f'''
+    Error: Please make sure your command makes sense and is set out as:
+    `=HPV <height> <base edge length>`. 
+    This was the error encountered:
+    {error}
+    ''')
+
+
+@bot.command(name='HPV')
+async def HexagonalPrismVolume(ctx, height:int, base_edge_length:int):
+    await HPV(ctx, height, base_edge_length)
+
+
+@HexagonalPrismVolume.error
+async def HPV_Error(ctx, error:str):
+    await HPVError(ctx, error)
+
+
 @bot.command(name='commands')
 async def start(ctx, specify='all'):
     welcome = """
@@ -220,17 +395,70 @@ async def start(ctx, specify='all'):
     `=commands` returns full list of commands.
     `=commands pwr` returns description of `pwr` command.
     '''
+    CuVHelp = '''
+    **=CuV,=CuboidVolume**
+    Find volume of cuboid/cube:
+    `=CuV <height> <length> <width>`
+    Example:
+    `=CuV 150 300 600` returns `27000000`
+    '''
+    PVHelp = '''
+    **=PV,=PyramidVolume**
+    Find volume of pyramid:
+    `=PyV <base area> <height>`
+    Example:
+    `=PyV 5 7` returns `11.6666667`
+    '''
+    SVHelp = '''
+    **=SV,=SphereVolume**
+    Find volume of sphere:
+    `=SV <radius>`
+    Example:
+    `=SV 1` returns `4.1887902`
+    '''
+    CyVHelp = '''
+    **=CyV,=CylinderVolume**
+    Find volume of cylinder:
+    `=CyV <radius> <height>`
+    Example:
+    `=CyV 6 8` returns `904.778684`
+    '''
+    PPVHelp = '''
+    **=PPV,=PentagonalPrismVolume**
+    Find volume of pentagonal prism:
+    `=PPV <height> <base edge length>`
+    Example:
+    `=PPV 2 3` returns `42.6246118`
+    '''
+    HPVHelp = '''
+    **=HPV,=HexagonalPrismVolume**
+    Find volume of hexagonal prism:
+    `=HPV <height> <base edge length>`
+    Example:
+    `=HPV 7 15` returns `4091.97003`
+    '''
     if specify == 'pr' or specify == 'primerange':
-        await ctx.send(welcome + PrimeHelp)
-        print(welcome + PrimeHelp)
+        await ctx.send(PrimeHelp)
     elif specify == 'pwr' or specify == 'powerrange':
-        await ctx.send(welcome + PowerHelp)
+        await ctx.send(PowerHelp)
     elif specify == 'ev' or specify == 'eval':
         await ctx.send(EvalHelp)
     elif specify == 'start' or specify == 'commands' or specify == 'cm':
-        await ctx.send(welcome + CommandHelp)
+        await ctx.send(CommandHelp)
+    elif specify == 'PyV' or specify == 'PyramidVolume':
+        await ctx.send(PVHelp)
+    elif specify == 'CuV' or specify == 'CuboidVolume':
+        await ctx.send(CuVHelp)
+    elif specify == 'SV' or specify == 'SphereVolume':
+        await ctx.send(SVHelp)
+    elif specify == 'CyV' or specify == 'CylinderVolume':
+        await ctx.send(CyVHelp)
+    elif specify == 'PPV' or specify == 'PentagonalPrismVolume':
+        await ctx.send(PPVHelp)
+    elif specify == 'HPV' or specify == 'HexagonalPrismVolume':
+        await ctx.send(HPVHelp)
     else:
-        await ctx.send(welcome + PrimeHelp + PowerHelp + CommandHelp)
+        await ctx.send(welcome + PrimeHelp + PowerHelp + CommandHelp + CuVHelp + PVHelp + CyVHelp + PPVHelp + HPVHelp)
 
 
 @bot.command(name='start')
@@ -244,11 +472,11 @@ async def __commands__(ctx):
 
 
 if name == 'nt':
-    cmdpath = environ['USERPROFILE']
-    path = cmdpath.replace("\\", "/") + '/TOKEN'
+    system_path = environ['USERPROFILE'] + '\\TOKEN'
+    path = system_path.replace("\\", "/")
 else:
     path = environ['HOME'] + '/TOKEN'
-    cmdpath = path
+    system_path = path
 try:
     with open(path, 'r') as t:
         token = str(t.read())
@@ -260,12 +488,12 @@ except:
             with open(path, 'w+') as t:
                 t.write(token)
         except Exception as e:
-            print(f'{str(e)}\n\aError while writing file to {cmdpath}')
+            print(f'{str(e)}\n\aError while writing file to {system_path}')
         else:
-            print(f'TOKEN has been written in file {cmdpath}')
+            print(f'TOKEN has been written in file {system_path}')
 else:
     if name == 'nt':
-        print(f'Using token from {cmdpath}')
+        print(f'Using token from {system_path}')
     else:
-        print(f'Using token from {cmdpath}')
+        print(f'Using token from {system_path}')
 bot.run(token)
