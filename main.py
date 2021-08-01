@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 from os import system, name, environ
 try:
-	from discord.ext import commands
+	from discord.ext import commands #type: ignore
 except ModuleNotFoundError:
 	print('discord.py is not installed. Installing...')
-	check_pip=str(system('python3 -m pip -V'))
+	check_pip = str(system('python3 -m pip -V'))
 	if not '0' in check_pip:
 		system('curl -fsSL https://bootstrap.pypa.io/get-pip.py -o get-pip.py ; python3 get-pip.py')
 	install_discord = str(system("python3 -m pip install 'discord.py'"))
@@ -474,29 +474,41 @@ async def __commands__(ctx):
 	await start(ctx, specify='all')
 
 
-if name == 'nt':
-	system_path = environ['USERPROFILE'] + '\\TOKEN'
-	path = system_path.replace("\\", "/")
-else:
-	path = environ['HOME'] + '/TOKEN'
-	system_path = path
 try:
-	with open(path, 'r') as t:
-		token = str(t.read())
+	if name == 'nt':
+		token = environ['TOKEN']
+	else:
+		with open('.TOKEN', 'r') as t:
+			token = str(t.read())
 except:
 	token = input('Please enter bot token.\n')
 	save = input('Do you want to save this token?\n')
 	if save.lower() == 'yes' or save.lower() == 'y':	
 		try:
-			with open(path, 'w+') as t:
-				t.write(token)
-		except Exception as e:
-			print(f'{str(e)}\n\aError while writing file to {system_path}')
+			if name == 'nt':
+				system(f'SETX TOKEN {token}')
+				token = environ['TOKEN']
+			else:
+				with open('TOKEN', 'w+') as t:
+					t.write(token)
+				protect_file = str(system('chmod 400 TOKEN'))
+				if not '0' in protect_file:
+					RuntimeError.strerror = 'Could not change permissions for file ./TOKEN (chmod o-rwx .TOKEN). Other users may be able to access your token!'
+					raise RuntimeError
+		except KeyError as k:
+			print(f'{str(k)}\n\aError while setting environment variable TOKEN to {token}.')
+		except IOError as i:
+			print('Error: Could not access/read file ./.TOKEN')
+		except RuntimeError as r:
+			print(r)
 		else:
-			print(f'TOKEN has been written in file {system_path}')
+			if name == 'nt':
+				print(f'Set user environment variable TOKEN to {token}')
+			else:
+				print(f'Token has been written in file ./.TOKEN')
 else:
 	if name == 'nt':
-		print(f'Using token from {system_path}')
+		print(f'Using token from environment variable TOKEN')
 	else:
-		print(f'Using token from {system_path}')
+		print(f'Using token from ./.TOKEN')
 bot.run(token)

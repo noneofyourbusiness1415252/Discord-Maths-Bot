@@ -1,7 +1,11 @@
 {
     "python.pythonPath": "python",
     "cSpell.words": [
+        "SETX",
         "cmath",
         "umar's"
+    ],
+    "cSpell.enableFiletypes": [
+        "!TOKEN"
     ]
 }
