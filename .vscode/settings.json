@@ -1,11 +1,12 @@
 {
-    "python.pythonPath": "python",
-    "cSpell.words": [
-        "SETX",
-        "cmath",
-        "umar's"
-    ],
-    "cSpell.enableFiletypes": [
-        "!TOKEN"
-    ]
+	"cSpell.words": ["SETX", "cmath", "umar's"],
+	"cSpell.ignorePaths": [
+		"**/package-lock.json",
+		"**/node_modules/**",
+		"**/vscode-extension/**",
+		"**/.git/objects/**",
+		".vscode",
+		".vscode-insiders",
+		".TOKEN"
+	]
 }
