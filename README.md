@@ -1,7 +1,6 @@
 # Umar's Discord Maths Bot
 
-This is the code for a bot I made. Currently, there is no way for me to host it,
-so I am saving up for a Raspberry Pi 4 4GB, which costs £75.
+This is the code for a bot I made. It is being hosted on repl.it using [this tutorial](https://replit.com/talk/learn/Hosting-discordpy-bots-with-replit/11008).
 
 ## What the bot currently does
 
