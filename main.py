@@ -474,21 +474,26 @@ async def _commands_(ctx):
 @bot.command(name='cm')
 async def __commands__(ctx):
 	await start(ctx, specify='all')
-
-
+try:
+	if environ['REPL_OWNER'] == 'UMARismyname':
+		replit = True
+	else:
+		replit = False
+except:
+	replit = False
+	
 while True:
 	try:
-		if name == 'nt':
+		if name == 'nt' or replit:
 			token = environ['TOKEN']
 		else:
 			with open('.TOKEN', 'r') as t:
 				token = str(t.read())
 		bot.run(token)
 	except:
-		print(e)
 		token = input('Please enter bot token.\n')
 		save = input('Do you want to save this token?\n')
-		if save.lower() == 'yes' or save.lower() == 'y':	
+		if save.lower() == 'yes' or save.lower() == 'y':
 			try:
 				if name == 'nt':
 					system(f'SETX TOKEN {token}')
@@ -512,7 +517,7 @@ while True:
 				else:
 					print(f'Token has been written in file ./.TOKEN')
 	else:
-		if name == 'nt':
+		if name == 'nt' or replit:
 			print(f'Using token from environment variable TOKEN')
 		else:
 			print(f'Using token from ./.TOKEN')
