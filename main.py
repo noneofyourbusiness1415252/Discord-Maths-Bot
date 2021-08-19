@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 from os import system, name, environ
+import keep_alive
+keep_alive.keep_alive()
 try:
 	from discord.ext import commands  # type: ignore
 except ModuleNotFoundError:
@@ -475,10 +477,7 @@ async def _commands_(ctx):
 async def __commands__(ctx):
 	await start(ctx, specify='all')
 try:
-	if environ['REPL_OWNER'] == 'UMARismyname':
-		replit = True
-	else:
-		replit = False
+	owner = environ['REPL_OWNER']
 except:
 	replit = False
 	
@@ -508,7 +507,7 @@ while True:
 			except KeyError as k:
 				print(f'{str(k)}\n\aError while setting environment variable TOKEN to {token}.')
 			except IOError as i:
-				print('Error: Could not access/read file ./.TOKEN\a')
+				print(f'Error: Could not access/read file ./.TOKEN\a\n{i}')
 			except RuntimeError as r:
 				print(r)
 			else:
@@ -516,9 +515,13 @@ while True:
 					print(f'Set user environment variable TOKEN to {token}')
 				else:
 					print(f'Token has been written in file ./.TOKEN')
+		else:
+			bot.run(token)
 	else:
 		if name == 'nt' or replit:
 			print(f'Using token from environment variable TOKEN')
 		else:
 			print(f'Using token from ./.TOKEN')
 		bot.run(token)
+print(token)
+bot.run(token)
