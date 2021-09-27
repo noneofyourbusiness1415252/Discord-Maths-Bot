@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+ #!/usr/bin/env python3
 from os import system, name, environ
 import keep_alive
 keep_alive.keep_alive()
@@ -480,7 +480,8 @@ try:
 	owner = environ['REPL_OWNER']
 except:
 	replit = False
-	
+else:
+	replit = True	
 while True:
 	try:
 		if name == 'nt' or replit:
