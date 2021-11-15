@@ -8,6 +8,10 @@ authors = ["UMARismyname <<>>"]
 python = "^3.8"
 discord = "^1.7.3"
 Flask = "^2.0.1"
+black-with-tabs = "^19.10b3"
+mypy-extensions = "^0.4.3"
+discord-py-slash-command = "^3.0.1"
+discord-variables-plugin = "^1.2"
 
 [tool.poetry.dev-dependencies]
 
