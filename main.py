@@ -5,10 +5,7 @@ import keep_alive
 keep_alive.keep_alive()
 try:
 	from discord.ext import commands
-	from discord import File
 	from discord_variables_plugin import GlobalUserVariables
-
-	userVars = GlobalUserVariables()
 except ModuleNotFoundError:
 	print("discord.py is not installed. Installing...")
 	check_pip = str(system("python3 -m pip -V"))
@@ -26,13 +23,16 @@ except ModuleNotFoundError:
 	)
 	if not "0" in install_discord:
 		print("Error while installing discord.py.\a")
-	from discord.ext import commands
-	from discord import File
+from discord.ext import commands
+from discord import File
+from discord_variables_plugin import GlobalUserVariables, ServerVariables
+
+serverVars = ServerVariables()
+userVars = GlobalUserVariables()
+
 import logging
 import logging.handlers
 from math import *
-import random
-from time import sleep
 
 logger = logging.getLogger("discord")
 logger.setLevel(logging.DEBUG)
@@ -49,15 +49,20 @@ async def on_ready():
 	print("We have logged in as {0.user}".format(bot))
 
 
+@bot.event
+async def on_command(ctx):
+	userVars.load("ServerVars")
+	serverVars.load("serverVars")
+
+
 @bot.command(name="primerange", aliases=["pr"])
 async def primerange(ctx, num1, num2, file: bool = False):
 	await ctx.channel.trigger_typing()
 	num1 = int(eval(num1))
 	num2 = int(eval(num2))
 	try:
-		with open(f"ServerSettings/{ctx.message.guild.id}", "r") as f:
-			limit = int(f.read())
-	except Exception as e:
+		limit = serverVars.get(ctx.message.guild, "MessageLimit")
+	except:
 		limit = 2000
 
 	def Prime(n):
@@ -129,6 +134,10 @@ async def pr_error(ctx, error):
 	),
 )
 async def powerrange(ctx, start, end, *th_power):
+	try:
+		limit = serverVars.get(ctx.message.guild, "MessageLimit")
+	except:
+		limit = 2000
 	await ctx.channel.trigger_typing()
 	start = int(eval(start))
 	end = int(eval(end)) + 1
@@ -166,7 +175,7 @@ async def powerrange(ctx, start, end, *th_power):
 				total += 1
 			i += 1
 		message += f"Total: {total}\n"
-		if len(message) > 2000 or file:
+		if len(message) > limit or file:
 			with open(f"/tmp/{ctx.message.id}.md", "w+") as f:
 				f.write(message)
 			if file:
@@ -194,10 +203,10 @@ async def pwr_error(ctx, error):
 	name="eval", aliases=["ev"], help="Do a calculation using Python operators."
 )
 async def formula(ctx, *formula):
+	userVars.load("userVars")
 	await ctx.channel.trigger_typing()
 	try:
-		with open(f"ServerSettings/{ctx.message.guild.id}", "r") as f:
-			limit = int(f.read())
+		limit = serverVars.get(ctx.message.guild, "MessageLimit")
 	except:
 		limit = 2000
 	if "system" in formula or "exit" in formula:
@@ -359,12 +368,8 @@ async def ML(ctx, limit: int):
 	if limit > 2000:
 		await ctx.send("Limit can not be more than 2000.")
 		limit = 2000
-	with open(f"ServerSettings/{ctx.message.guild.id}", "w+") as f:
-		f.write(str(limit))
-	await ctx.send(
-		f"All messages sent by this bot on this server that are over {limit} characters"
-		" will now be sent as files instead."
-	)
+	serverVars.set(ctx.message.guild, "MessageLimit", limit)
+	serverVars.save("serverVars")
 
 
 @ML.error
@@ -380,18 +385,9 @@ async def MLError(ctx, error):
 		)
 
 
-@bot.command(
-	name="var", help="Save a variable for use in =eval. **Can not be changed later.**"
-)
+@bot.command(name="var", help="Save a variable for use in =eval, e.g. if you set `e` to `3+2`, `ev $e + 1` returns `6`.")
 async def var(ctx, var, val):
-	intval = int(eval(val))
-	val = float(eval(val))
-	if str(intval) == str(val):
-		userVars.set(ctx.message.author, var, intval)
-	else:
-		userVars.set(ctx.message.author, var, val)
-
+	userVars.set(ctx.message.author, var, val)
 	userVars.save("userVars")
-
 
 bot.run(environ["TOKEN"])
