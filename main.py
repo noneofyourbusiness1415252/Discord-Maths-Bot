@@ -5,17 +5,18 @@ from discord import File, Embed
 from discord import Colour
 from discord_variables_plugin import GlobalUserVariables, ServerVariables
 from matplotlib import pyplot
+from math import sqrt, log10
 
 serverVars = ServerVariables()
 userVars = GlobalUserVariables()
 
 import logging
 import logging.handlers
-from math import *
 from flask import Flask
 from threading import Thread
 from time import time
 from fractions import Fraction
+from random import randint
 
 app = Flask("Umar's Maths Bot")
 
@@ -33,9 +34,7 @@ Thread(target=run).start()
 logger = logging.getLogger("discord")
 logger.setLevel(logging.DEBUG)
 handler = logging.handlers.RotatingFileHandler("./discord.log", "a", 32768, 1)
-handler.setFormatter(
-	logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
-)
+handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
 logger.addHandler(handler)
 bot = commands.Bot(command_prefix="=", case_insensitive=True)
 
@@ -62,8 +61,10 @@ def discordround(ctx, *number: float):
 		else:
 			if type(i) == complex:
 				rounded.append(round(i.real, digits) + round(i.imag, digits) * 1j)
+			elif (asfloat := round(i, digits)) % 1:
+				rounded.append(asfloat)
 			else:
-				rounded.append(round(i, digits))
+				rounded.append(int(asfloat))
 	if len(rounded) == 1:
 		return rounded[0]
 	return rounded
@@ -87,7 +88,7 @@ def discordnum(ctx: commands.context.Context, *calc: str):
 					i = i.replace(var, userVars.get(ctx.message.author, var))
 				except:
 					locals()[var] = __import__(var)
-				else:
+			else:
 				answers.append(ans)
 				break
 	if len(answers) == 1:
@@ -95,25 +96,23 @@ def discordnum(ctx: commands.context.Context, *calc: str):
 	return answers
 
 
-async def send(ctx: commands.context.Context, file: str = "", footer="", **embed):
+async def send(ctx: commands.context.Context, file: str = "", footer="\n", **embed):
 	author = ctx.message.author
-	guild = ctx.message.guild
 	userVars.load("userVars")
 	try:
 		embed = Embed(**embed, colour=userVars.get(author, "colour"))
 	except KeyError:
-		embed = Embed(**embed, colour=Colour.random())
+		colour = Colour.random()
+		embed = Embed(**embed, colour=colour)
+		userVars.set(author, "colour", colour)
 		userVars.save("userVars")
-	if footer:
-		embed.set_footer(text=footer)
+	embed.set_footer(text=footer)
 	try:
 		limit = serverVars.get(ctx.message.guild, "MessageLimit")
 	except KeyError:
 		limit = 4000
 	if len(embed) > limit or file == "file":
-		open(f"/tmp/{ctx.message.id}.md", "w+").write(
-			f"**{embed.title}**\n{embed.description}\n{footer}"
-		)
+		open(f"/tmp/{ctx.message.id}.md", "w+").write(f"**{embed.title}**\n{embed.description}\n{footer}")
 		if file:
 			return await ctx.send(file=File(f"/tmp/{ctx.message.id}.md"))
 		else:
@@ -134,13 +133,21 @@ async def on_command(ctx):
 	await ctx.channel.trigger_typing()
 
 
-@bot.command(name="Primes", help="Find primes up to a number")
+@bot.command(
+	name="Primes",
+	help=(
+		"Find primes up to a number. Example:\n`=primes 1000` for primes up to `1000`,"
+		" `=primes 10000 file` to put the primes up to `10000` in a file."
+	),
+)
 async def primes(ctx, limit, file=""):
 	start_time = time()
 	limit = discordnum(ctx, limit)
+	if limit <= 2:
+		limit = 3
 	sieve = [False] * (limit + 1)
-	sqrt = int(limit ** 0.5)
-	uptosqrt = range(1, sqrt + 1)
+	isqrt = int(sqrt(limit))
+	uptosqrt = range(1, isqrt + 1)
 	for i in uptosqrt:
 		isquare = i ** 2
 		tsquare = isquare * 3
@@ -152,12 +159,12 @@ async def primes(ctx, limit, file=""):
 				sieve[n] = not sieve[n]
 			if i > j and (n := tsquare - jsquare) <= limit and n % 12 == 11:
 				sieve[n] = not sieve[n]
-	for i in range(5, sqrt):
+	for i in range(5, isqrt):
 		if sieve[i]:
 			isquare = i ** 2
 			for j in range(isquare, limit + 1, isquare):
 				sieve[j] = False
-	primes = [2, 3] + [x for x in range(5, limit) if sieve[x]]
+	primes = [2, 3] + [x for x in range(5, limit + 1) if sieve[x]]
 	await send(
 		ctx,
 		file,
@@ -197,7 +204,7 @@ async def powerrange(ctx, start, end, file=""):
 	for i in range(start, end + 1):
 		if i == 1:
 			message += "1ⁿ = 1\n"
-		for j in range(2, int(i ** 0.5) + 1):
+		for j in range(2, int(sqrt(i)) + 1):
 			base = round(abs(i) ** (1 / j))
 			if base ** j == abs(i):
 				if j % 2 == 0:
@@ -226,25 +233,18 @@ async def pwr_error(ctx, error):
 @bot.command(
 	name="Evaluate",
 	aliases=["ev", "calc", "eval"],
-	help=(
-		"Do a calculation using Python operators, your own saved variables, and/or the"
-		" python `math` module."
-	),
+	help="Do a calculation using Python operators, your own saved variables, and/or the python `math` module.",
 )
 async def calculation(ctx, *calculation):
 	file = calculation[-1]
 	calc = " ".join((*calculation[:-1], file.replace("file", "")))
-	print(calc)
 	ans = discordnum(ctx, calc)
 	if type(ans) == float:
 		frac = Fraction(str(ans))
 		if log10(frac.denominator) % 1:
 			if ans < 1:
 				await send(
-					ctx,
-					file,
-					title=calc,
-					description=f"{frac.numerator}⁄{frac.denominator}\n{ans}",
+					ctx, file, title=calc, description=f"{frac.numerator}⁄{frac.denominator}\n{ans}",
 				)
 			else:
 				await send(
@@ -398,12 +398,9 @@ async def PPV(ctx, height, base_edge_length, file=""):
 		file,
 		description=(
 			f"5 ÷ 4 × {height} × {base_edge_length}² × (1 + 2 ÷ √5) ="
-			f" {(5 / 4) * height * base_edge_length ** 2 * (1 + 2 / sqrt(5))}"
+			f" {(5 / 4) * height * base_edge_length ** 2 * (1 + 2 / 5 ** .5)}"
 		),
-		title=(
-			f"Volume of pentagonal prism with height {height}, base edge length"
-			" {base_edge_length}:"
-		),
+		title=f"Volume of pentagonal prism with height {height}, base edge length {{base_edge_length}}:",
 	)
 
 
@@ -426,14 +423,8 @@ async def HPV(ctx, height, base_edge_length, file=""):
 	await send(
 		ctx,
 		file,
-		description=(
-			f"3√3 ÷ 2 × {height} × {base_edge_length}² ="
-			f" {(3 * sqrt(3) / 2) * height * base_edge_length ** 2}"
-		),
-		title=(
-			f"Volume of hexagon with height {height}, base edge length"
-			f" {base_edge_length}"
-		),
+		description=f"3√3 ÷ 2 × {height} × {base_edge_length}² = {(3 * 3 ** .5) / 2 * height * base_edge_length ** 2}",
+		title=f"Volume of hexagon with height {height}, base edge length {base_edge_length}",
 	)
 
 
@@ -451,9 +442,7 @@ async def HPVError(ctx, error: str):
 
 
 @bot.command(
-	name="MessageLimit",
-	aliases=["ML"],
-	help="Set the character limit for messages sent by the bot.",
+	name="MessageLimit", aliases=["ML"], help="Set the character limit for messages sent by the bot.",
 )
 @commands.has_permissions(administrator=True)
 async def ML(ctx, limit: int):
@@ -464,19 +453,14 @@ async def ML(ctx, limit: int):
 	else:
 		serverVars.set(ctx.message.guild, "MessageLimit", limit)
 		serverVars.save("serverVars")
-		await ctx.send(
-			f"All messages will now be sent as files instead if they exceed {limit}"
-			" characters."
-		)
+		await ctx.send(f"All messages will now be sent as files instead if they exceed {limit} characters.")
 
 
 @ML.error
 async def MLError(ctx, error):
 	if isinstance(error, commands.CheckFailure):
 		await send(
-			ctx,
-			title="Permission denied:",
-			description=" You are not an admin of this server.",
+			ctx, title="Permission denied:", description=" You are not an admin of this server.",
 		)
 	else:
 		await send(
@@ -513,9 +497,7 @@ async def rmvar_error(ctx, error):
 
 
 @bot.command(
-	name="FibonacciGraph",
-	aliases=["FibGraph", "FG"],
-	help="Generate a graph of the Fibonacci sequence",
+	name="FibonacciGraph", aliases=["FibGraph", "FG"], help="Generate a graph of the Fibonacci sequence",
 )
 async def fibonacci_graph(ctx, end, mode="fibonacci", transparent=""):
 	end = discordnum(ctx, end)
@@ -570,7 +552,6 @@ async def fibgraph_error(ctx, error):
 @bot.command(name="QuadraticEquation", aliases=["QE", "QuadEq"])
 async def QuadEq(ctx, a, b, c):
 	a, b, c = discordnum(ctx, a, b, c)
-	print(type(a), type(b), type(c))
 	d = (b ** 2 - 4 * a * c) ** 0.5
 	ans1, ans2 = (d - b) / 2 * a, (-b - d) / 2 * a
 	if ans1 == ans2:
@@ -637,10 +618,7 @@ async def roundto_error(ctx, error: str):
 @bot.command(
 	name="EmbedColour",
 	aliases=["EmbedColor", "EC"],
-	help=(
-		"Set the embed colour to an rgb colour, e.g. `=ec 185 242 255` for a diamond"
-		" colour."
-	),
+	help="Set the embed colour to an rgb colour, e.g. `=ec 185 242 255` for a diamond colour.",
 )
 async def embed_colour(ctx, red, green, blue):
 	colour = Colour.from_rgb(*discordnum(ctx, red, green, blue))
@@ -648,6 +626,68 @@ async def embed_colour(ctx, red, green, blue):
 	userVars.set(ctx.message.author, "colour", colour)
 	userVars.save("userVars")
 	serverVars.set(ctx.message.guild, "colours", colours + [colour])
+
+
+@bot.command(
+	name="TimeMeOn",
+	help=(
+		"Times you on how long you take to find the correct answer to a random calculation. The first arguments are the"
+		" calculation, with '?' expanding to a random number, and the last argument is the range for the random number,"
+		" in the format `start..end`. For example `=timemeon ? * ? 2..12` tests you on your 2-12 times tables."
+	),
+)
+async def test_on(ctx, *calculation):
+	calc = " ".join(calculation[:-1])
+	limit = calculation[-1].split("..")
+	i = 0
+	while i < len(calc):
+		if calc[i] == "?":
+			calc = calc[:i] + str(randint(*discordnum(ctx, *limit))) + calc[i + 1 :]
+			i = 0
+		else:
+			i += 1
+	bot_time = time()
+	answer = discordnum(ctx, calc)
+	bot_time = discordround(ctx, time() - bot_time)
+	await send(ctx, title=f"What is {calc}?")
+	attempts = 1
+	player_time = time()
+	while answer != discordround(
+		ctx,
+		float(
+			(
+				await bot.wait_for(
+					"message", check=lambda m: m.channel.id == ctx.channel.id and m.author == ctx.message.author,
+				)
+			).content
+		),
+	):
+		await send(
+			ctx, title="Incorrect! :negative_squared_cross_mark:", description="Try again!",
+		)
+		attempts += 1
+	await send(
+		ctx,
+		title="Correct! :white_check_mark:",
+		description=(
+			f"That took you **{attempts}** attempt(s), and"
+			f" **{discordround(ctx, time() - player_time)}** seconds.\nI took **{bot_time}**"
+			" seconds."
+		),
+	)
+
+
+@test_on.error
+async def test_error(ctx, error):
+	await send(
+		ctx,
+		title="Error",
+		description=(
+			"Please make sure your command makes sense and is in the format: `=testmeon <calculation> <limit of"
+			" randoms>`\nExample: `=timemeon ?*? 2..12` tests you on 2-12 times tables.\n This was the error"
+			f" encountered:\n```{error}```"
+		),
+	)
 
 
 bot.run(environ["TOKEN"])
