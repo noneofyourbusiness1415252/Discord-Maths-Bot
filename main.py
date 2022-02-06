@@ -10,6 +10,7 @@ from flask import Flask
 from threading import Thread
 from time import time
 from fractions import Fraction
+from timeit import timeit
 
 app = Flask("Umar's Maths Bot")
 
@@ -41,7 +42,7 @@ def discordround(ctx, num):
 	try:
 		roundto = userVars.get(ctx.message.author, "RoundTo")
 	except:
-		return num if num % 1 else int(num)
+		return num if type(num) in {complex, float} else int(num)
 	digits = int(roundto[:-2])
 	if roundto.endswith("sf"):
 		format = f"%.{digits}g"
@@ -638,6 +639,7 @@ async def embed_colour(ctx, red, green, blue):
 	),
 )
 async def test_on(ctx, *calculation):
+	serverVars.load("serverVars")
 	calc = " ".join(calculation[:-1])
 	limit = calculation[-1].split("..")
 	i = 0
@@ -696,6 +698,75 @@ async def test_error(ctx, error):
 			" `=testmeon <calculation> <limit of randoms>`\nExample: `=timemeon ?*?"
 			" 2..12` tests you on 2-12 times tables.\n This was the error"
 			f" encountered:\n```{error}```"
+		),
+	)
+
+
+@bot.command(
+	name="LanguageSpeedComparison",
+	aliases=["LSC"],
+)
+async def lsc(ctx, limit, *langs):
+	message, limit = "", int(discordnum(ctx, limit))
+	if len(langs) == 0 or langs[0] == "all":
+		langs = [
+			"C",
+			"C++",
+			"Rust",
+			"Go",
+			"Nodejs",
+			"C#",
+			"Ruby",
+			"Python",
+			"Java",
+			"Kotlin",
+		]
+	else:
+		langs = list(langs)
+		for i in range(len(langs)):
+			langs[i] = langs[i][0].upper() + langs[i][1:].lower()
+	times = {}
+	for i in langs:
+		if i == "Python":
+			args = "'python', 'primes.py'"
+		elif i in {"Java", "Kotlin"}:
+			args = f"'{i.lower()}', '-cp', '{i}', 'primes'"
+		elif i == "Nodejs":
+			args = "'node', 'primes.js'"
+		elif i == "Ruby":
+			args = "'ruby', 'primes.rb'"
+		elif i == "C#":
+			args = "'mono', 'C#/primes.exe'"
+		else:
+			args = f"'./{i}/primes'"
+		times[i] = timeit(
+			f"check_output([{args}, '{limit}'], stderr=STDOUT)",
+			setup="from subprocess import STDOUT, check_output",
+			number=1,
+		)
+		fastest = min(times, key=times.get)
+	for i in sorted(times, key=times.get):
+		message += (
+			f"**{i}**: \n> Time taken: {discordround(ctx, times[i])}\n> Multiplier:"
+			f" {discordround(ctx, times[i] / times[fastest])}\n"
+		)
+	await send(
+		ctx,
+		title=f"Language speed comparison, checking primes up to {limit}",
+		description=message,
+	)
+
+
+@lsc.error
+async def lsc_error(ctx, error):
+	await send(
+		ctx,
+		title="Error",
+		description=(
+			"Please make sure your command makes sense and is in the format `=lsc"
+			" <limit> <languages...>`.\nExample: `=lsc 100 Rust C++` to compare Rust"
+			" and C++ on listing primes up to 100\nThis was the error encountered:"
+			f" {error}"
 		),
 	)
 
