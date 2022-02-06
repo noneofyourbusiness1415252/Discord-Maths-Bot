@@ -702,10 +702,7 @@ async def test_error(ctx, error):
 	)
 
 
-@bot.command(
-	name="LanguageSpeedComparison",
-	aliases=["LSC"],
-)
+@bot.command(name="LanguageSpeedComparison", aliases=["LSC"])
 async def lsc(ctx, limit, *langs):
 	message, limit = "", int(discordnum(ctx, limit))
 	if len(langs) == 0 or langs[0] == "all":
@@ -739,16 +736,20 @@ async def lsc(ctx, limit, *langs):
 			args = "'mono', 'C#/primes.exe'"
 		else:
 			args = f"'./{i}/primes'"
-		times[i] = timeit(
-			f"check_output([{args}, '{limit}'], stderr=STDOUT)",
-			setup="from subprocess import STDOUT, check_output",
-			number=1,
-		)
+		try:
+			times[i] = timeit(
+				f"check_output([{args}, '{limit}'], stderr=STDOUT)",
+				setup="from subprocess import STDOUT, check_output",
+				number=1,
+			)
+		except Exception as err:
+			message += f"{i}:\n> ```{str(err)}```\n"
+			continue
 		fastest = min(times, key=times.get)
 	for i in sorted(times, key=times.get):
 		message += (
-			f"**{i}**: \n> Time taken: {discordround(ctx, times[i])}\n> Multiplier:"
-			f" {discordround(ctx, times[i] / times[fastest])}\n"
+			f"**{i}**: \n> Time taken: {discordround(ctx,times[i])}\n> Multiplier:"
+			f" {discordround(ctx,times[i]/times[fastest])}\n"
 		)
 	await send(
 		ctx,
