@@ -38,7 +38,7 @@ userVars = GlobalUserVariables()
 
 
 def discordround(ctx, num):
-	userVars.load("userVars")
+	userVars.load("userVars.json")
 	try:
 		roundto = userVars.get(ctx.message.author, "RoundTo")
 	except:
@@ -57,7 +57,7 @@ def discordround(ctx, num):
 
 
 def discordnum(ctx, *calc):
-	userVars.load("userVars")
+	userVars.load("userVars.json")
 	answers = []
 	for i in calc:
 		while True:
@@ -79,14 +79,14 @@ def discordnum(ctx, *calc):
 
 async def send(ctx, file="", footer="", **embed):
 	author = ctx.message.author
-	userVars.load("userVars")
+	userVars.load("userVars.json")
 	try:
 		embed = Embed(**embed, colour=userVars.get(author, "colour"))
 	except KeyError:
 		colour = Colour.random()
 		embed = Embed(**embed, colour=colour)
 		userVars.set(author, "colour", colour)
-		userVars.save("userVars")
+		userVars.save("userVars.json")
 	embed.set_footer(text=footer)
 	try:
 		limit = serverVars.get(ctx.message.guild, "MessageLimit")
@@ -436,12 +436,12 @@ async def HPVError(ctx, error):
 @commands.has_permissions(administrator=True)
 async def ML(ctx, limit):
 	limit = discordnum(ctx, limit)
-	serverVars.load("serverVars")
+	serverVars.load("serverVars.json")
 	if limit >= 4000:
 		serverVars.removeVar(ctx.message.guild, "MessageLimit")
 	else:
 		serverVars.set(ctx.message.guild, "MessageLimit", limit)
-		serverVars.save("serverVars")
+		serverVars.save("serverVars.json")
 		await ctx.send(
 			"All messages will now be sent as files instead if they exceed"
 			f" {limit} characters."
@@ -476,16 +476,16 @@ async def MLError(ctx, error):
 	aliases=["var"],
 )
 async def var(ctx, var, val):
-	userVars.load("userVars")
+	userVars.load("userVars.json")
 	userVars.set(ctx.message.author, var, val)
-	userVars.save("userVars")
+	userVars.save("userVars.json")
 
 
 @bot.command(name="RemoveVariable", aliases=["rmvar"])
 async def rmvar(ctx, var):
-	userVars.load("userVars")
+	userVars.load("userVars.json")
 	userVars.removeVar(ctx.message.author, var)
-	userVars.save("userVars")
+	userVars.save("userVars.json")
 
 
 @rmvar.error
@@ -594,9 +594,9 @@ async def QE_error(ctx, error):
 )
 async def round_to(ctx, amount):
 	assert amount[-2:] in ["sf", "dp"]
-	userVars.load("userVars")
+	userVars.load("userVars.json")
 	userVars.set(ctx.message.author, "RoundTo", amount)
-	userVars.save("userVars")
+	userVars.save("userVars.json")
 
 
 @round_to.error
@@ -623,9 +623,9 @@ async def roundto_error(ctx, error):
 )
 async def embed_colour(ctx, red, green, blue):
 	colour = Colour.from_rgb(*discordnum(ctx, red, green, blue))
-	userVars.load("userVars")
+	userVars.load("userVars.json")
 	userVars.set(ctx.message.author, "colour", colour)
-	userVars.save("userVars")
+	userVars.save("userVars.json")
 
 
 @bot.command(
@@ -639,7 +639,7 @@ async def embed_colour(ctx, red, green, blue):
 	),
 )
 async def test_on(ctx, *calculation):
-	serverVars.load("serverVars")
+	serverVars.load("serverVars.json")
 	calc = " ".join(calculation[:-1])
 	limit = calculation[-1].split("..")
 	i = 0
@@ -738,8 +738,8 @@ async def lsc(ctx, limit, *langs):
 			args = f"'./{i}/primes'"
 		try:
 			times[i] = timeit(
-				f"check_output([{args}, '{limit}'], stderr=STDOUT)",
-				setup="from subprocess import STDOUT, check_output",
+				f"run([{args}, '{limit}'], stderr=DEVNULL, stdout=DEVNULL, check=True)",
+				setup="from subprocess import DEVNULL, run",
 				number=1,
 			)
 		except Exception as err:
