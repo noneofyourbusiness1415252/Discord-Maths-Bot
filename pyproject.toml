@@ -1,6 +1,6 @@
 [tool.black]
 experimental-string-processing = true
-target-version = ["py310"]
+target-version = ["py38"]
 [tool.poetry]
 authors = ["Umar Sharief"]
 description = "A discord maths bot with functions for quadratic equations, primes, nth powers (e.g. squares, cubes), volume and a calculator."
@@ -9,7 +9,7 @@ version = "0.1.0"
 [tool.poetry.dependencies]
 Flask = "^2.0.1"
 black = "^21.12b0"
-discord = "^1.7.3"
 discord-variables-plugin = "^1.2"
-mypy-extensions = "^0.4.3"
 python = "^3.8"
+py-cord = "^2.0.0b1"
+numpy = "^1.22.2"

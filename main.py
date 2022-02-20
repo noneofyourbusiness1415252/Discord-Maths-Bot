@@ -2,6 +2,7 @@ from os import environ, path
 from discord.ext import commands
 from discord import File, Embed
 from discord import Colour
+from discord_variables_plugin import GlobalUserVariables, ServerVariables
 from matplotlib import pyplot
 from numpy import *
 import logging, logging.handlers
@@ -10,7 +11,10 @@ from threading import Thread
 from time import time
 from fractions import Fraction
 from timeit import timeit
+from ctypes import CDLL, c_uint, POINTER, byref
 
+primesupto = CDLL("./primes").primesupto
+primesupto.restype = POINTER(c_uint)
 app = Flask("Umar's Maths Bot")
 
 
@@ -19,7 +23,11 @@ def display_logs():
 	return open("discord.log").read()
 
 
-Thread(target=app.run).start()
+def run():
+	app.run("0.0.0.0")
+
+
+Thread(target=run).start()
 logger = logging.getLogger("discord")
 logger.setLevel(logging.DEBUG)
 handler = logging.handlers.RotatingFileHandler("./discord.log", "a", 32768, 1)
@@ -28,11 +36,14 @@ handler.setFormatter(
 )
 logger.addHandler(handler)
 bot = commands.Bot(command_prefix="=", case_insensitive=True)
+serverVars = ServerVariables()
+userVars = GlobalUserVariables()
 
 
 def discordround(ctx, num):
+	userVars.load("userVars.json")
 	try:
-		roundto = eval(open("userVars").read())[ctx.message.author.id]["RoundTo"]
+		roundto = userVars.get(ctx.message.author, "RoundTo")
 	except:
 		return num if type(num) in {complex, float} else int(num)
 	digits = int(roundto[:-2])
@@ -49,6 +60,7 @@ def discordround(ctx, num):
 
 
 def discordnum(ctx, *calc):
+	userVars.load("userVars.json")
 	answers = []
 	for i in calc:
 		while True:
@@ -59,7 +71,7 @@ def discordnum(ctx, *calc):
 					if "'" in j:
 						var = j.replace("'", "")
 						break
-				i = i.replace(var, eval(open("userVars").read())[ctx.message.author.id][var])
+				i = i.replace(var, userVars.get(ctx.message.author, var))
 			else:
 				answers.append(ans)
 				break
@@ -69,17 +81,18 @@ def discordnum(ctx, *calc):
 
 
 async def send(ctx, file="", footer="", **embed):
-	userVars = eval(open("userVars").read())
+	author = ctx.message.author
+	userVars.load("userVars.json")
 	try:
-		embed = Embed(**embed, colour=userVars["colour"])
+		embed = Embed(**embed, colour=userVars.get(author, "colour"))
 	except KeyError:
 		colour = Colour.random()
 		embed = Embed(**embed, colour=colour)
-		userVars[ctx.message.author.id]["colour"] = colour
-		open("userVars", "w+").write(str(userVars))
+		userVars.set(author, "colour", colour)
+		userVars.save("userVars.json")
 	embed.set_footer(text=footer)
 	try:
-		limit = eval(open("serverVars").read())[ctx.message.author]["limit"]
+		limit = serverVars.get(ctx.message.guild, "MessageLimit")
 	except KeyError:
 		limit = 4000
 	if len(embed) > limit or file == "file":
@@ -111,20 +124,14 @@ async def on_ready():
 async def primes(ctx, limit, file=""):
 	start_time = time()
 	limit = int(discordnum(ctx, limit))
-	half = limit // 2
-	sieve = bytearray({True}) * half
-	for i in range(3, int(sqrt(limit)) + 1, 2):
-		if sieve[i // 2]:
-			for j in range(i ** 2 // 2, half, i):
-				sieve[j] = False
-	limit = discordnum(ctx, limit)
-	sieve = [2] + [2 * x + 1 for x in range(1, half) if sieve[x]]
+	total = c_uint()
+	primes = primesupto(limit, byref(total))
 	await send(
 		ctx,
 		file,
 		f"Time taken: {discordround(ctx,time()-start_time)}",
-		title=f"{len(sieve)} primes up to {limit}:",
-		description=str(sieve)[1:-1],
+		title=f"{total.value} primes up to {limit}:",
+		description=str([primes[x] for x in range(total.value)])[1:-1],
 	)
 
 
@@ -205,10 +212,7 @@ async def calculation(ctx, *calculation):
 	footer = ""
 	ans = discordround(ctx, unrounded)
 	if unrounded != ans:
-		footer = (
-			"Rounding to"
-			f" {eval(open('userVars').read())[ctx.message.author]['RoundTo']}"
-		)
+		footer = f"Rounding to {userVars.get(ctx.message.author,'RoundTo')}"
 	if type(ans) == float:
 		frac = Fraction(str(ans))
 		if log10(frac.denominator) % 1:
@@ -429,12 +433,12 @@ async def HPVError(ctx, error):
 @commands.has_permissions(administrator=True)
 async def ML(ctx, limit):
 	limit = discordnum(ctx, limit)
-	serverVars = eval(open("serverVars").read())
+	serverVars.load("serverVars.json")
 	if limit >= 4000:
-		del serverVars[ctx.message.author.id]["MessageLimit"]
+		serverVars.removeVar(ctx.message.guild, "MessageLimit")
 	else:
-		serverVars["MessageLimit"] = limit
-		open("serverVars", "w+").write(str(serverVars))
+		serverVars.set(ctx.message.guild, "MessageLimit", limit)
+		serverVars.save("serverVars.json")
 		await ctx.send(
 			"All messages will now be sent as files instead if they exceed"
 			f" {limit} characters."
@@ -468,29 +472,22 @@ async def MLError(ctx, error):
 	),
 	aliases=["var"],
 )
-async def var(ctx, name, value):
-	userVars = eval(open("userVars").read())
-	userVars[ctx.message.author.id][name] = value
-	open("userVars", "w+").write(str(userVars))
+async def var(ctx, var, val):
+	userVars.load("userVars.json")
+	userVars.set(ctx.message.author, var, val)
+	userVars.save("userVars.json")
 
 
 @bot.command(name="RemoveVariable", aliases=["rmvar"])
-async def rmvar(ctx, name):
-	userVars = eval(open("userVars").read())
-	del userVars[ctx.message.author.id][name]
-	open("userVars", "w+").write(str(userVars))
+async def rmvar(ctx, var):
+	userVars.load("userVars.json")
+	userVars.removeVar(ctx.message.author, var)
+	userVars.save("userVars.json")
 
 
 @rmvar.error
 async def rmvar_error(ctx, error):
-	await send(
-		ctx,
-		title="Error",
-		description=(
-			"Please make sure your command makes sense, and the variable exists. Error"
-			f" encountered:{error}"
-		),
-	)
+	await ctx.send("Error: variable does not exist.")
 
 
 @bot.command(
@@ -594,9 +591,9 @@ async def QE_error(ctx, error):
 )
 async def round_to(ctx, amount):
 	assert amount[-2:] in ["sf", "dp"]
-	userVars = eval(open("userVars").read())
-	userVars[ctx.message.author.id]["RoundTo"] = amount
-	open("userVars", "w+").write(str(userVars))
+	userVars.load("userVars.json")
+	userVars.set(ctx.message.author, "RoundTo", amount)
+	userVars.save("userVars.json")
 
 
 @round_to.error
@@ -623,9 +620,9 @@ async def roundto_error(ctx, error):
 )
 async def embed_colour(ctx, red, green, blue):
 	colour = Colour.from_rgb(*discordnum(ctx, red, green, blue))
-	userVars = eval(open("userVars").read())
-	userVars["colour"][ctx.message.author] = colour
-	open("userVars", "w+").write(str(userVars))
+	userVars.load("userVars.json")
+	userVars.set(ctx.message.author, "colour", colour)
+	userVars.save("userVars.json")
 
 
 @bot.command(
@@ -639,6 +636,7 @@ async def embed_colour(ctx, red, green, blue):
 	),
 )
 async def test_on(ctx, *calculation):
+	serverVars.load("serverVars.json")
 	calc = " ".join(calculation[:-1])
 	limit = calculation[-1].split("..")
 	i = 0
