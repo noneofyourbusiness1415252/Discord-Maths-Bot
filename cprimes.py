@@ -12,6 +12,4 @@ primes = primesupto(
 	),
 	byref(total),
 )
-for i in range(total.value):
-	print(primes[i], end=", ")
-print("\nTotal:", total.value)
+print(primes[:total.value], "\nTotal:", total.value)

@@ -1,6 +1,6 @@
 from os import environ, path
 from discord.ext import commands
-from discord import File, Embed
+from discord import File, Embed, Bot
 from discord import Colour
 from discord_variables_plugin import GlobalUserVariables, ServerVariables
 from matplotlib import pyplot
@@ -102,7 +102,8 @@ async def send(ctx, file="", footer="", **embed):
 		if file:
 			return await ctx.reply(file=File(f"/tmp/{ctx.message.id}.md"))
 		return await ctx.reply(
-			f"Message would be over {limit} characters, so sending in file instead",
+			f"Message would be over {limit} characters, so sending in file"
+			" instead",
 			file=File(f"/tmp/{ctx.message.id}.md"),
 		)
 	return await ctx.reply(embed=embed)
@@ -116,12 +117,17 @@ async def on_ready():
 @bot.command(
 	name="Primes",
 	help=(
-		"Find primes up to, **but not including**, a number. Example:\n`=primes 1000`"
-		" for primes up to `1000`, `=primes 10000 file` to put the primes up to `10000`"
-		" in a file."
+		"Find primes up to, **but not including**, a number. Example:\n`=primes"
+		" 1000` for primes up to `1000`, `=primes 10000 file` to put the primes up"
+		" to `10000` in a file."
 	),
 )
-async def primes(ctx, limit, file=""):
+async def primes(
+	ctx,
+	limit,
+	file="",
+	help="Find primes up to a number. Due to the nature of the algorithm, it may give extra primes because it rounds up to multiples of 6, e.g. `=primes 100` actually gives you primes up to 102, so it includes 101.",
+):
 	start_time = time()
 	limit = int(discordnum(ctx, limit))
 	total = c_uint()
@@ -130,8 +136,8 @@ async def primes(ctx, limit, file=""):
 		ctx,
 		file,
 		f"Time taken: {discordround(ctx,time()-start_time)}",
-		title=f"{total.value} primes up to {limit}:",
-		description=str([primes[x] for x in range(total.value)])[1:-1],
+		title=f"{total.value} primes:",
+		description=str(primes[: total.value])[1:-1],
 	)
 
 
@@ -141,9 +147,9 @@ async def pr_error(ctx, error):
 		ctx,
 		title="Error",
 		description=(
-			"Please make sure your command is set out like this:\n=`primes <limit>`,"
-			" e.g. `=primes 1000` returns the primes up to 1000.\nThis was the error"
-			f" encountered:\n ```{error}```"
+			"Please make sure your command is set out like this:\n=`primes"
+			" <limit>`, e.g. `=primes 1000` returns the primes up to 1000.\nThis"
+			f" was the error encountered:\n ```{error}```"
 		),
 	)
 
@@ -152,8 +158,8 @@ async def pr_error(ctx, error):
 	name="nthPowerRange",
 	aliases=["npwr"],
 	help=(
-		"Find the squares, cubes etc. between 2 numbers, e.g. `=npwr 1 1000` for the"
-		" squares, cubes, etc. between 1 and 1000."
+		"Find the squares, cubes etc. between 2 numbers, e.g. `=npwr 1 1000` for"
+		" the squares, cubes, etc. between 1 and 1000."
 	),
 )
 async def powerrange(ctx, start, end, file=""):
@@ -201,8 +207,8 @@ This was the error encountered:
 	name="Evaluate",
 	aliases=["ev", "calc", "eval"],
 	help=(
-		"Do a calculation using Python operators, your own saved variables, and python"
-		" modules."
+		"Do a calculation using Python operators, your own saved variables, and"
+		" python modules."
 	),
 )
 async def calculation(ctx, *calculation):
@@ -235,9 +241,9 @@ async def calculation_error(ctx, error):
 		ctx,
 		title="Error",
 		description=(
-			"Please make sure your calculation makes sense and uses python operators,"
-			" the math module and/or your own defined variables. \nThis was the error"
-			f" encountered:\n```{error}```"
+			"Please make sure your calculation makes sense and uses python"
+			" operators, the math module and/or your own defined variables."
+			f" \nThis was the error encountered:\n```{error}```"
 		),
 	)
 
@@ -249,9 +255,13 @@ async def CuV(ctx, length, height, width, file=""):
 		ctx,
 		file,
 		description=(
-			f"{length} × {height} × {width} = {discordround(ctx,length*height*width)}"
+			f"{length} × {height} × {width} ="
+			f" {discordround(ctx,length*height*width)}"
 		),
-		title=f"Length of cuboid with length {length}, height {height}, width {width}:",
+		title=(
+			f"Length of cuboid with length {length}, height {height}, width"
+			f" {width}:"
+		),
 	)
 
 
@@ -261,7 +271,8 @@ async def CuVError(ctx, error):
 		ctx,
 		description=(
 			"Please make sure your command makes sense and is set out as:`=CuV"
-			f" <height> <width> length>`.\nThis was the error encountered:\n{error}"
+			" <height> <width> length>`.\nThis was the error"
+			f" encountered:\n{error}"
 		),
 		title="Error",
 	)
@@ -286,7 +297,8 @@ async def PVError(ctx, error):
 		ctx,
 		description=(
 			"Please make sure your command makes sense and is set out as:\n`=PV"
-			" <base_area> <height>`.\nThis was the error encountered:\n```{error}```"
+			" <base_area> <height>`.\nThis was the error"
+			" encountered:\n```{error}```"
 		),
 		title="Error",
 	)
@@ -298,7 +310,9 @@ async def SV(ctx, radius, file=""):
 	await send(
 		ctx,
 		file,
-		description=f"4 ÷ 3 × π × {radius}³ = {discordround(ctx,4/3*pi*radius**3)}",
+		description=(
+			f"4 ÷ 3 × π × {radius}³ = {discordround(ctx,4/3*pi*radius**3)}"
+		),
 		title=f"Volume of sphere with radius {radius}:",
 	)
 
@@ -322,7 +336,8 @@ async def CoV(ctx, radius, height, file=""):
 		ctx,
 		file,
 		description=(
-			f"π × {radius}² × {height} ÷ 3 = {discordround(ctx,pi*radius**2*height/3)}"
+			f"π × {radius}² × {height} ÷ 3 ="
+			f" {discordround(ctx,pi*radius**2*height/3)}"
 		),
 		title=f"Volume of cone with radius {radius}, height {height}:",
 	)
@@ -457,8 +472,8 @@ async def MLError(ctx, error):
 		await send(
 			ctx,
 			title=(
-				"Error: Please make sure your command makes sense and is set out as:"
-				" `=MessageLimit <limit>` This was the error"
+				"Error: Please make sure your command makes sense and is set out"
+				" as: `=MessageLimit <limit>` This was the error"
 				f" encountered:\n```{error}```"
 			),
 		)
@@ -467,8 +482,8 @@ async def MLError(ctx, error):
 @bot.command(
 	name="Variable",
 	help=(
-		"Save a variable for use in any command, e.g. if you type `=var x 2`, `=ev x *"
-		" 3` returns `6`, `=primes x` returns the primes up to 6."
+		"Save a variable for use in any command, e.g. if you type `=var x 2`, `=ev"
+		" x * 3` returns `6`, `=primes x` returns the primes up to 6."
 	),
 	aliases=["var"],
 )
@@ -548,7 +563,9 @@ This was the error encountered:
 async def QuadEq(ctx, a, b, c):
 	a, b, c = discordnum(ctx, a, b, c)
 	d, dbla = (b ** 2 - 4 * a * c) ** 0.5, 2 * a
-	ans1, ans2 = discordround(ctx, (d - b) / dbla), discordround(ctx, (-b - d) / dbla)
+	ans1, ans2 = discordround(ctx, (d - b) / dbla), discordround(
+		ctx, (-b - d) / dbla
+	)
 	if ans1 == ans2:
 		await send(
 			ctx,
@@ -560,8 +577,8 @@ async def QuadEq(ctx, a, b, c):
 			ctx,
 			title=f"{a}x² + {b}x + {c} = 0: x = {ans1}, {ans2}",
 			description=(
-				f"{-b} + √({b}² + 4 × {a} × {c}) ÷ 2 × {a} = **{ans1}**\n(√({b}² - 4 ×"
-				f" {a} × {c}) - {b}) ÷ 2 × {a} = **{ans2}**"
+				f"{-b} + √({b}² + 4 × {a} × {c}) ÷ 2 × {a} = **{ans1}**\n(√({b}² -"
+				f" 4 × {a} × {c}) - {b}) ÷ 2 × {a} = **{ans2}**"
 			),
 		)
 
@@ -584,8 +601,8 @@ async def QE_error(ctx, error):
 	name="RoundTo",
 	help=(
 		"Select a number of decimal places or significant figures to round all"
-		" calculations to, e.g. `=roundto 3sf` for 3 significant figures, or `=roundto"
-		" 5dp` for 5 decimal places."
+		" calculations to, e.g. `=roundto 3sf` for 3 significant figures, or"
+		" `=roundto 5dp` for 5 decimal places."
 	),
 	aliases=["RT"],
 )
@@ -602,10 +619,10 @@ async def roundto_error(ctx, error):
 		ctx,
 		title="Error",
 		description=(
-			"Please make sure your command makes sense and is in the format: `=roundto"
-			" <integer><sf or dp>, e.g. `=roundto 3sf`or 3 significant figures, or"
-			" `=roundto 5dp` for 5 decimal places.\nThis was the error encountered:"
-			f" ```{error}```"
+			"Please make sure your command makes sense and is in the format:"
+			" `=roundto <integer><sf or dp>, e.g. `=roundto 3sf`or 3 significant"
+			" figures, or `=roundto 5dp` for 5 decimal places.\nThis was the"
+			f" error encountered: ```{error}```"
 		),
 	)
 
@@ -614,8 +631,8 @@ async def roundto_error(ctx, error):
 	name="EmbedColour",
 	aliases=["EmbedColor", "EC"],
 	help=(
-		"Set the embed colour to an rgb colour, e.g. `=ec 185 242 255` for a diamond"
-		" colour."
+		"Set the embed colour to an rgb colour, e.g. `=ec 185 242 255` for a"
+		" diamond colour."
 	),
 )
 async def embed_colour(ctx, red, green, blue):
@@ -629,10 +646,10 @@ async def embed_colour(ctx, red, green, blue):
 	name="TimeMeOn",
 	help=(
 		"Times you on how long you take to find the correct answer to a random"
-		" calculation. The first arguments are the calculation, with '?' expanding to a"
-		" random number, and the last argument is the range for the random number, in"
-		" the format `start..end`. For example `=timemeon ? * ? 2..12` tests you on"
-		" your 2-12 times tables."
+		" calculation. The first arguments are the calculation, with '?' expanding"
+		" to a random number, and the last argument is the range for the random"
+		" number, in the format `start..end`. For example `=timemeon ? * ? 2..12`"
+		" tests you on your 2-12 times tables."
 	),
 )
 async def test_on(ctx, *calculation):
@@ -692,8 +709,8 @@ async def test_error(ctx, error):
 		title="Error",
 		description=(
 			"Please make sure your command makes sense and is in the format:"
-			" `=testmeon <calculation> <limit of randoms>`\nExample: `=timemeon ?*?"
-			" 2..12` tests you on 2-12 times tables.\n This was the error"
+			" `=testmeon <calculation> <limit of randoms>`\nExample: `=timemeon"
+			" ?*? 2..12` tests you on 2-12 times tables.\n This was the error"
 			f" encountered:\n```{error}```"
 		),
 	)
@@ -735,7 +752,8 @@ async def lsc(ctx, limit, *langs):
 			args = f"'./{i}/primes'"
 		try:
 			times[i] = timeit(
-				f"run([{args}, '{limit}'], stderr=DEVNULL, stdout=DEVNULL, check=True)",
+				f"run([{args}, '{limit}'], stderr=DEVNULL, stdout=DEVNULL,"
+				" check=True)",
 				setup="from subprocess import DEVNULL, run",
 				number=1,
 			)
@@ -762,9 +780,9 @@ async def lsc_error(ctx, error):
 		title="Error",
 		description=(
 			"Please make sure your command makes sense and is in the format `=lsc"
-			" <limit> <languages...>`.\nExample: `=lsc 100 Rust C++` to compare Rust"
-			" and C++ on listing primes up to 100\nThis was the error encountered:"
-			f" {error}"
+			" <limit> <languages...>`.\nExample: `=lsc 100 Rust C++` to compare"
+			" Rust and C++ on listing primes up to 100\nThis was the error"
+			f" encountered: {error}"
 		),
 	)
 
