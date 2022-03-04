@@ -1,5 +1,6 @@
+[tool]
 [tool.black]
-experimental-string-processing = true
+preview = true
 line-length = 83
 [tool.poetry]
 authors = ["Umar Sharief"]
@@ -7,8 +8,9 @@ description = "A discord maths bot with functions for quadratic equations, prime
 name = "Umar's Discord Maths Bot"
 version = "0.1.0"
 [tool.poetry.dependencies]
-Flask = "^2.0.1"
-black = "^21.12b0"
-discord-variables-plugin = "^1.2"
+Flask = "*"
+black = "*"
+discord-variables-plugin = "*"
+matplotlib = "*"
+py-cord = "*"
 python = "^3.8"
-py-cord = "^2.0.0b1"

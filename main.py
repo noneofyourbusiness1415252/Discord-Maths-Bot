@@ -124,13 +124,13 @@ async def primes(
 	help="Find primes up to a number, e.g. `primes 1000` for t",
 ):
 	start_time = time()
-	primes = primesupto(int(discordnum(ctx, limit)) + 1)
+	primelist = primesupto(int(discordnum(ctx, limit)) + 1)
 	await send(
 		ctx,
 		file,
 		f"Time taken: {discordround(ctx,time()-start_time)}",
-		title=f"{len(primes)} primes up to {limit}:",
-		description=str(primes)[1:-1],
+		title=f"{len(primelist)} primes up to {limit}:",
+		description=str(primelist)[1:-1],
 	)
 
 
@@ -142,7 +142,7 @@ async def pr_error(ctx, error):
 		description=(
 			"Please make sure your command is set out like this:\n=`primes"
 			" <limit>`, e.g. `=primes 1000` returns the primes up to 1000.\nThis"
-			f" was the error encountered:\n ```{error}```"
+			f" was the error encountered:\n ```diff\n-{error}```"
 		),
 	)
 
@@ -168,7 +168,7 @@ async def powerrange(ctx, start, end, file=""):
 	for i in range(start, end + 1):
 		for j in range(2, int(sqrt(i)) + 1):
 			base = round(abs(i) ** (1 / j))
-			if base ** j == abs(i):
+			if base**j == abs(i):
 				if j % 2 == 0:
 					message += f"±({base}){super(str(j))} = {i}\n"
 				else:
@@ -236,7 +236,7 @@ async def calculation_error(ctx, error):
 		description=(
 			"Please make sure your calculation makes sense and uses python"
 			" operators, the math module and/or your own defined variables."
-			f" \nThis was the error encountered:\n```{error}```"
+			f" \nThis was the error encountered:\n```diff\n-{error}```"
 		),
 	)
 
@@ -291,7 +291,7 @@ async def PVError(ctx, error):
 		description=(
 			"Please make sure your command makes sense and is set out as:\n`=PV"
 			" <base_area> <height>`.\nThis was the error"
-			" encountered:\n```{error}```"
+			" encountered:\n```diff\n-{error}```"
 		),
 		title="Error",
 	)
@@ -316,7 +316,7 @@ async def SVError(ctx, error):
 		ctx,
 		description=(
 			"Please make sure your command makes sense and is set out as: `=SV`"
-			" <radius>`.\nThis was the error encountered:\n```{error}```"
+			" <radius>`.\nThis was the error encountered:\n```diff\n-{error}```"
 		),
 		title="Error",
 	)
@@ -342,7 +342,8 @@ async def CoVError(ctx, error):
 		ctx,
 		description=(
 			"Please make sure your command makes sense and is set out as:\n`=CoV"
-			f" <radius> <height>`.\nThis was the error encountered:\n```{error}```"
+			" <radius> <height>`.\nThis was the error"
+			f" encountered:\n```diff\n-{error}```"
 		),
 		title=f"Error",
 	)
@@ -367,7 +368,8 @@ async def CyVError(ctx, error):
 		ctx,
 		description=(
 			"Please make sure your command makes sense and is set out as:\n`=CyV"
-			f" <radius> <height>`.\nThis was the error encountered:\n```{error}```"
+			" <radius> <height>`.\nThis was the error"
+			f" encountered:\n```diff\n-{error}```"
 		),
 		title="Error",
 	)
@@ -397,7 +399,7 @@ async def PPVError(ctx, error):
 		description=(
 			"Please make sure your command makes sense and is set out as:\n`=PPV"
 			" <height> <base edge length>`.\nThis was the error"
-			f" encountered:\n```{error}```"
+			f" encountered:\n```diff\n-{error}```"
 		),
 		title="Error",
 	)
@@ -427,7 +429,7 @@ async def HPVError(ctx, error):
 		description=(
 			"Please make sure your command makes sense and is set out as:\n`=HPV"
 			" <height> <base edge length>`.\nThis was the error"
-			f" encountered:\n```{error}```"
+			f" encountered:\n```diff\n-{error}```"
 		),
 		title="Error",
 	)
@@ -467,7 +469,7 @@ async def MLError(ctx, error):
 			title=(
 				"Error: Please make sure your command makes sense and is set out"
 				" as: `=MessageLimit <limit>` This was the error"
-				f" encountered:\n```{error}```"
+				f" encountered:\n```diff\n-{error}```"
 			),
 		)
 
@@ -547,7 +549,7 @@ async def fibgraph_error(ctx, error):
 Example: `=fibgraph 20` gives you a Fibonacci graph up to fibonacci=20.
 `=fibgraph 20 n` gives you a Fibonacci graph up to n=20.
 This was the error encountered:
-```{error}```""",
+```diff\n{error}```""",
 		title="Error",
 	)
 
@@ -555,7 +557,7 @@ This was the error encountered:
 @bot.command(name="QuadraticEquation", aliases=["QE", "QuadEq"])
 async def QuadEq(ctx, a, b, c):
 	a, b, c = discordnum(ctx, a, b, c)
-	d, dbla = (b ** 2 - 4 * a * c) ** 0.5, 2 * a
+	d, dbla = (b**2 - 4 * a * c) ** 0.5, 2 * a
 	ans1, ans2 = discordround(ctx, (d - b) / dbla), discordround(
 		ctx, (-b - d) / dbla
 	)
@@ -584,7 +586,7 @@ async def QE_error(ctx, error):
 			"Please make sure your command makes sense and is in the layout:\n"
 			" `=quadeq <a> <b> <c>`.\nExample: `=quadeq 2 4 2` returns `-4.0`,"
 			" the answer to the equation 2x² + 4x + 2.\nThis was the error"
-			f" encountered:\n```{error}```"
+			f" encountered:\n```diff\n-{error}```"
 		),
 		title="Error",
 	)
@@ -615,7 +617,7 @@ async def roundto_error(ctx, error):
 			"Please make sure your command makes sense and is in the format:"
 			" `=roundto <integer><sf or dp>, e.g. `=roundto 3sf`or 3 significant"
 			" figures, or `=roundto 5dp` for 5 decimal places.\nThis was the"
-			f" error encountered: ```{error}```"
+			f" error encountered: ```diff\n-{error}```"
 		),
 	)
 
@@ -704,7 +706,7 @@ async def test_error(ctx, error):
 			"Please make sure your command makes sense and is in the format:"
 			" `=testmeon <calculation> <limit of randoms>`\nExample: `=timemeon"
 			" ?*? 2..12` tests you on 2-12 times tables.\n This was the error"
-			f" encountered:\n```{error}```"
+			f" encountered:\n```diff\n-{error}```"
 		),
 	)
 
@@ -751,7 +753,7 @@ async def lsc(ctx, limit, *langs):
 				number=1,
 			)
 		except Exception as err:
-			message += f"{i}:\n> ```{str(err)}```\n"
+			message += f"{i}:\n> ```diff\n-{str(err)}```\n"
 			continue
 		fastest = min(times, key=times.get)
 	for i in sorted(times, key=times.get):
