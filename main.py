@@ -1,21 +1,20 @@
 from os import environ, path
 from discord.ext import commands
-from discord import File, Embed, Bot
+from discord import File, Embed
 from discord import Colour
 from discord_variables_plugin import GlobalUserVariables, ServerVariables
 from matplotlib import pyplot
-from numpy import *
+from math import *
+from random import randint
 import logging, logging.handlers
 from flask import Flask
 from threading import Thread
 from time import time
 from fractions import Fraction
 from timeit import timeit
-from ctypes import CDLL, c_uint, POINTER, byref
+from primes import primesupto
 
-primesupto = CDLL("./primes").primesupto
-primesupto.restype = POINTER(c_uint)
-app = Flask("Umar's Maths Bot")
+app = Flask("Discord Maths Bot")
 
 
 @app.route("/")
@@ -23,11 +22,7 @@ def display_logs():
 	return open("discord.log").read()
 
 
-def run():
-	app.run("0.0.0.0")
-
-
-Thread(target=run).start()
+Thread(target=lambda: app.run("0.0.0.0")).start()
 logger = logging.getLogger("discord")
 logger.setLevel(logging.DEBUG)
 handler = logging.handlers.RotatingFileHandler("./discord.log", "a", 32768, 1)
@@ -126,18 +121,16 @@ async def primes(
 	ctx,
 	limit,
 	file="",
-	help="Find primes up to a number. Due to the nature of the algorithm, it may give extra primes because it rounds up to multiples of 6, e.g. `=primes 100` actually gives you primes up to 102, so it includes 101.",
+	help="Find primes up to a number, e.g. `primes 1000` for t",
 ):
 	start_time = time()
-	limit = int(discordnum(ctx, limit))
-	total = c_uint()
-	primes = primesupto(limit, byref(total))
+	primes = primesupto(int(discordnum(ctx, limit)) + 1)
 	await send(
 		ctx,
 		file,
 		f"Time taken: {discordround(ctx,time()-start_time)}",
-		title=f"{total.value} primes:",
-		description=str(primes[: total.value])[1:-1],
+		title=f"{len(primes)} primes up to {limit}:",
+		description=str(primes)[1:-1],
 	)
 
 
@@ -589,8 +582,8 @@ async def QE_error(ctx, error):
 		ctx,
 		description=(
 			"Please make sure your command makes sense and is in the layout:\n"
-			" `=quadeq <a> <b> <c>`.\nExample: `=quadeq 2 4 2` returns `-4.0`, the"
-			" answer to the equation 2x² + 4x + 2.\nThis was the error"
+			" `=quadeq <a> <b> <c>`.\nExample: `=quadeq 2 4 2` returns `-4.0`,"
+			" the answer to the equation 2x² + 4x + 2.\nThis was the error"
 			f" encountered:\n```{error}```"
 		),
 		title="Error",
@@ -662,7 +655,7 @@ async def test_on(ctx, *calculation):
 		if calc[i] == "?":
 			letter = calc[i + 1]
 			if not letter in vars:
-				vars[letter] = str(random.randint(*discordnum(ctx, *limit)))
+				vars[letter] = str(randint(*discordnum(ctx, *limit)))
 			calc = calc[:i] + vars[letter] + calc[i + 2 :]
 			print(calc, vars)
 		else:

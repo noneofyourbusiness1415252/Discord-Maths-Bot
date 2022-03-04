@@ -1,8 +1,10 @@
 fn main() {
 	print!("2");
-	let (limit, mut total) = (std::env::args().collect::<Vec<String>>()[1].parse::<usize>().unwrap(), 1);
+	let limit = std::env::args().collect::<Vec<String>>()[1]
+		.parse::<usize>()
+		.unwrap();
 	let half = limit / 2;
-	let mut sieve = vec![true; half];
+	let (mut sieve, mut total) = (vec![true; half], 1);
 	for i in (3..=(limit as f32).sqrt() as usize).step_by(2) {
 		if sieve[i / 2] {
 			for j in (i * i / 2..half).step_by(i) {

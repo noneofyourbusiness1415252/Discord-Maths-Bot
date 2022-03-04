@@ -10,7 +10,7 @@ fun main(args: Array<String>) {
 				sieve[j] = false
 	for (i in 1 until half)
 		if (sieve[i]) {
-			print(", ${2 * i + 1}")
+			print(", ${(2 * i + 1).toUInt()}")
 			total++
 		}
 	println("\nTotal: $total")
