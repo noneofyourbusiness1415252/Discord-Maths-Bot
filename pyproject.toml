@@ -1,7 +1,7 @@
 [tool]
 [tool.black]
 preview = true
-line-length = 83
+line-length = 80
 [tool.poetry]
 authors = ["Umar Sharief"]
 description = "A discord maths bot with functions for quadratic equations, primes, nth powers (e.g. squares, cubes), volume and a calculator."

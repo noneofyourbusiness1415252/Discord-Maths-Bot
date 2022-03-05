@@ -12,7 +12,7 @@ from threading import Thread
 from time import time
 from fractions import Fraction
 from timeit import timeit
-from primes import primesupto
+from maths_stuff import *
 
 app = Flask("Discord Maths Bot")
 
@@ -76,6 +76,7 @@ def discordnum(ctx, *calc):
 
 
 async def send(ctx, file="", footer="", **embed):
+	await ctx.channel.trigger_typing()
 	author = ctx.message.author
 	userVars.load("userVars.json")
 	try:
@@ -113,8 +114,8 @@ async def on_ready():
 	name="Primes",
 	help=(
 		"Find primes up to, **but not including**, a number. Example:\n`=primes"
-		" 1000` for primes up to `1000`, `=primes 10000 file` to put the primes up"
-		" to `10000` in a file."
+		" 1000` for primes up to `1000`, `=primes 10000 file` to put the primes"
+		" up to `10000` in a file."
 	),
 )
 async def primes(
@@ -123,14 +124,15 @@ async def primes(
 	file="",
 	help="Find primes up to a number, e.g. `primes 1000` for t",
 ):
+	limit = int(discordnum(ctx, limit))
 	start_time = time()
-	primelist = primesupto(int(discordnum(ctx, limit)) + 1)
+	primes = primesupto(limit + 1)
 	await send(
 		ctx,
 		file,
 		f"Time taken: {discordround(ctx,time()-start_time)}",
-		title=f"{len(primelist)} primes up to {limit}:",
-		description=str(primelist)[1:-1],
+		title=f"{len(primes)} primes up to {limit}:",
+		description=str(primes)[1:-1],
 	)
 
 
@@ -141,8 +143,8 @@ async def pr_error(ctx, error):
 		title="Error",
 		description=(
 			"Please make sure your command is set out like this:\n=`primes"
-			" <limit>`, e.g. `=primes 1000` returns the primes up to 1000.\nThis"
-			f" was the error encountered:\n ```diff\n-{error}```"
+			" <limit>`, e.g. `=primes 1000` returns the primes up to"
+			f" 1000.\nThis was the error encountered:\n ```diff\n-{error}```"
 		),
 	)
 
@@ -151,34 +153,16 @@ async def pr_error(ctx, error):
 	name="nthPowerRange",
 	aliases=["npwr"],
 	help=(
-		"Find the squares, cubes etc. between 2 numbers, e.g. `=npwr 1 1000` for"
-		" the squares, cubes, etc. between 1 and 1000."
+		"Find the squares, cubes etc. between 2 numbers, e.g. `=npwr 1 1000`"
+		" for the squares, cubes, etc. between 1 and 1000."
 	),
 )
 async def powerrange(ctx, start, end, file=""):
-	start, end = discordnum(ctx, start, end)
-	start_time = time()
-	message = ""
-
-	def super(x):
-		return x.translate(x.maketrans("0123456789", "⁰¹²³⁴⁵⁶⁷⁸⁹"))
-
-	if start == 1:
-		message += "1ⁿ = 1\nn⁰ = 1\n"
-	for i in range(start, end + 1):
-		for j in range(2, int(sqrt(i)) + 1):
-			base = round(abs(i) ** (1 / j))
-			if base**j == abs(i):
-				if j % 2 == 0:
-					message += f"±({base}){super(str(j))} = {i}\n"
-				else:
-					message += f"{base}{super(str(j))} = {i}\n"
 	await send(
 		ctx,
 		file,
-		f"Time taken: {discordround(ctx,time()-start_time)} seconds",
 		title=f"nth powers between {start} and {end}:",
-		description=message,
+		description=nthpowers(*discordnum(ctx, start, end)),
 	)
 
 
@@ -278,7 +262,8 @@ async def PV(ctx, base_area, height, file=""):
 		ctx,
 		file,
 		description=(
-			f"{base_area} × {height} ÷ 3 = {discordround(ctx,base_area*height/3)}"
+			f"{base_area} × {height} ÷ 3 ="
+			f" {discordround(ctx,base_area*height/3)}"
 		),
 		title=f"Volume of pyramid with base area {base_area}, height {height}:",
 	)
@@ -341,8 +326,8 @@ async def CoVError(ctx, error):
 	await send(
 		ctx,
 		description=(
-			"Please make sure your command makes sense and is set out as:\n`=CoV"
-			" <radius> <height>`.\nThis was the error"
+			"Please make sure your command makes sense and is set out"
+			" as:\n`=CoV <radius> <height>`.\nThis was the error"
 			f" encountered:\n```diff\n-{error}```"
 		),
 		title=f"Error",
@@ -356,7 +341,8 @@ async def CyV(ctx, radius, height, file=""):
 		ctx,
 		file,
 		description=(
-			f"π × {radius}² × {height} = {discordround(ctx,pi*radius**2*height)}"
+			f"π × {radius}² × {height} ="
+			f" {discordround(ctx,pi*radius**2*height)}"
 		),
 		title=f"Volume of cylinder with radius {radius}, height {height}:",
 	)
@@ -367,8 +353,8 @@ async def CyVError(ctx, error):
 	await send(
 		ctx,
 		description=(
-			"Please make sure your command makes sense and is set out as:\n`=CyV"
-			" <radius> <height>`.\nThis was the error"
+			"Please make sure your command makes sense and is set out"
+			" as:\n`=CyV <radius> <height>`.\nThis was the error"
 			f" encountered:\n```diff\n-{error}```"
 		),
 		title="Error",
@@ -397,8 +383,8 @@ async def PPVError(ctx, error):
 	await send(
 		ctx,
 		description=(
-			"Please make sure your command makes sense and is set out as:\n`=PPV"
-			" <height> <base edge length>`.\nThis was the error"
+			"Please make sure your command makes sense and is set out"
+			" as:\n`=PPV <height> <base edge length>`.\nThis was the error"
 			f" encountered:\n```diff\n-{error}```"
 		),
 		title="Error",
@@ -427,8 +413,8 @@ async def HPVError(ctx, error):
 	await send(
 		ctx,
 		description=(
-			"Please make sure your command makes sense and is set out as:\n`=HPV"
-			" <height> <base edge length>`.\nThis was the error"
+			"Please make sure your command makes sense and is set out"
+			" as:\n`=HPV <height> <base edge length>`.\nThis was the error"
 			f" encountered:\n```diff\n-{error}```"
 		),
 		title="Error",
@@ -467,8 +453,8 @@ async def MLError(ctx, error):
 		await send(
 			ctx,
 			title=(
-				"Error: Please make sure your command makes sense and is set out"
-				" as: `=MessageLimit <limit>` This was the error"
+				"Error: Please make sure your command makes sense and is set"
+				" out as: `=MessageLimit <limit>` This was the error"
 				f" encountered:\n```diff\n-{error}```"
 			),
 		)
@@ -477,8 +463,8 @@ async def MLError(ctx, error):
 @bot.command(
 	name="Variable",
 	help=(
-		"Save a variable for use in any command, e.g. if you type `=var x 2`, `=ev"
-		" x * 3` returns `6`, `=primes x` returns the primes up to 6."
+		"Save a variable for use in any command, e.g. if you type `=var x 2`,"
+		" `=ev x * 3` returns `6`, `=primes x` returns the primes up to 6."
 	),
 	aliases=["var"],
 )
@@ -565,15 +551,18 @@ async def QuadEq(ctx, a, b, c):
 		await send(
 			ctx,
 			title=f"{a}x² + {b}x + {c} = 0: x = {ans1}",
-			description=f"({-b} ± √({b}² - 4 × {a} × {c})) ÷ 2 × {a} = **{ans1}**",
+			description=(
+				f"({-b} ± √({b}² - 4 × {a} × {c})) ÷ 2 × {a} = **{ans1}**"
+			),
 		)
 	else:
 		await send(
 			ctx,
 			title=f"{a}x² + {b}x + {c} = 0: x = {ans1}, {ans2}",
 			description=(
-				f"{-b} + √({b}² + 4 × {a} × {c}) ÷ 2 × {a} = **{ans1}**\n(√({b}² -"
-				f" 4 × {a} × {c}) - {b}) ÷ 2 × {a} = **{ans2}**"
+				f"{-b} + √({b}² + 4 × {a} × {c}) ÷ 2 × {a} ="
+				f" **{ans1}**\n(√({b}² - 4 × {a} × {c}) - {b}) ÷ 2 × {a} ="
+				f" **{ans2}**"
 			),
 		)
 
@@ -615,9 +604,9 @@ async def roundto_error(ctx, error):
 		title="Error",
 		description=(
 			"Please make sure your command makes sense and is in the format:"
-			" `=roundto <integer><sf or dp>, e.g. `=roundto 3sf`or 3 significant"
-			" figures, or `=roundto 5dp` for 5 decimal places.\nThis was the"
-			f" error encountered: ```diff\n-{error}```"
+			" `=roundto <integer><sf or dp>, e.g. `=roundto 3sf`or 3"
+			" significant figures, or `=roundto 5dp` for 5 decimal"
+			f" places.\nThis was the error encountered: ```diff\n-{error}```"
 		),
 	)
 
@@ -641,10 +630,10 @@ async def embed_colour(ctx, red, green, blue):
 	name="TimeMeOn",
 	help=(
 		"Times you on how long you take to find the correct answer to a random"
-		" calculation. The first arguments are the calculation, with '?' expanding"
-		" to a random number, and the last argument is the range for the random"
-		" number, in the format `start..end`. For example `=timemeon ? * ? 2..12`"
-		" tests you on your 2-12 times tables."
+		" calculation. The first arguments are the calculation, with '?'"
+		" expanding to a random number, and the last argument is the range for"
+		" the random number, in the format `start..end`. For example `=timemeon"
+		" ? * ? 2..12` tests you on your 2-12 times tables."
 	),
 )
 async def test_on(ctx, *calculation):
@@ -758,8 +747,8 @@ async def lsc(ctx, limit, *langs):
 		fastest = min(times, key=times.get)
 	for i in sorted(times, key=times.get):
 		message += (
-			f"**{i}**: \n> Time taken: {discordround(ctx,times[i])}\n> Multiplier:"
-			f" {discordround(ctx,times[i]/times[fastest])}\n"
+			f"**{i}**: \n> Time taken: {discordround(ctx,times[i])}\n>"
+			f" Multiplier: {discordround(ctx,times[i]/times[fastest])}\n"
 		)
 	await send(
 		ctx,
@@ -774,10 +763,10 @@ async def lsc_error(ctx, error):
 		ctx,
 		title="Error",
 		description=(
-			"Please make sure your command makes sense and is in the format `=lsc"
-			" <limit> <languages...>`.\nExample: `=lsc 100 Rust C++` to compare"
-			" Rust and C++ on listing primes up to 100\nThis was the error"
-			f" encountered: {error}"
+			"Please make sure your command makes sense and is in the format"
+			" `=lsc <limit> <languages...>`.\nExample: `=lsc 100 Rust C++` to"
+			" compare Rust and C++ on listing primes up to 100\nThis was the"
+			f" error encountered: {error}"
 		),
 	)
 

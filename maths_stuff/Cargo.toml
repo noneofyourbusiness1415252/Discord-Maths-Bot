@@ -1,0 +1,8 @@
+[package]
+name = "cpython_maths_stuff"
+version = "0.1.0"
+[dependencies.cpython]
+features = ["extension-module"]
+[lib]
+name = "maths_stuff"
+crate-type = ["cdylib"]

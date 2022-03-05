@@ -1,1 +1,1 @@
-target/release/libprimes.so
+cpython_primes/target/release/libprimes.so

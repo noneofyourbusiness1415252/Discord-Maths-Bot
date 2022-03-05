@@ -1,8 +1,0 @@
-[package]
-name = "primes"
-version = "0.1.0"
-[dependencies.cpython]
-features = ["extension-module"]
-[lib]
-name = "primes"
-crate-type = ["cdylib"]
