@@ -158,11 +158,12 @@ async def pr_error(ctx, error):
 	),
 )
 async def powerrange(ctx, start, end, file=""):
+	start, end = discordnum(ctx, start, end)
 	await send(
 		ctx,
 		file,
 		title=f"nth powers between {start} and {end}:",
-		description=nthpowers(*discordnum(ctx, start, end)),
+		description=nthpowers(int(start), int(end)),
 	)
 
 
@@ -176,7 +177,7 @@ async def pwr_error(ctx, error):
  Example:
 `=npwr 1 1000` to find squares, cubes etc. between 1 and 100. 
 This was the error encountered:
-  {str(error)}""",
+  ```diff\n-{str(error)}```""",
 	)
 
 
@@ -535,7 +536,8 @@ async def fibgraph_error(ctx, error):
 Example: `=fibgraph 20` gives you a Fibonacci graph up to fibonacci=20.
 `=fibgraph 20 n` gives you a Fibonacci graph up to n=20.
 This was the error encountered:
-```diff\n{error}```""",
+```diff
+{error}```""",
 		title="Error",
 	)
 
@@ -571,12 +573,12 @@ async def QuadEq(ctx, a, b, c):
 async def QE_error(ctx, error):
 	await send(
 		ctx,
-		description=(
-			"Please make sure your command makes sense and is in the layout:\n"
-			" `=quadeq <a> <b> <c>`.\nExample: `=quadeq 2 4 2` returns `-4.0`,"
-			" the answer to the equation 2x² + 4x + 2.\nThis was the error"
-			f" encountered:\n```diff\n-{error}```"
-		),
+		description=f"""Please make sure your command makes sense and is in the layout:
+ `=quadeq <a> <b> <c>`.
+Example: `=quadeq 2 4 2` returns `-4.0`, the answer to the equation 2x² + 4x + 2.
+This was the error encountered:
+```diff
+-{error}```""",
 		title="Error",
 	)
 
@@ -693,9 +695,9 @@ async def test_error(ctx, error):
 		title="Error",
 		description=(
 			"Please make sure your command makes sense and is in the format:"
-			" `=testmeon <calculation> <limit of randoms>`\nExample: `=timemeon"
-			" ?*? 2..12` tests you on 2-12 times tables.\n This was the error"
-			f" encountered:\n```diff\n-{error}```"
+			" `=testmeon <calculation> <limit of randoms>`\nExample:"
+			" `=timemeon ?*? 2..12` tests you on 2-12 times tables.\n This was"
+			f" the error encountered:\n```diff\n-{error}```"
 		),
 	)
 

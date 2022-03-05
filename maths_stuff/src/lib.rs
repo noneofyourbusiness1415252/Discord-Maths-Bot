@@ -20,11 +20,11 @@ py_fn!(py, nthpowers(start: u64, end: u64) -> PyResult<String> {
 		for j in 2..=(i as f32).sqrt() as u64 {
 			let base = ((i as f32).powf(1. / (j as f32))).round() as u64;
 			if base.pow(j as u32) == i {
-				fmt += &(if j % 2 == 0 {
+				fmt += &if j % 2 == 0 {
 					format!("±({})^{} = {}\n", base, j, i)
 				} else {
 					format!("{}^{} = {}\n", base, j, i)
-				})
+				}
 			}
 		}
 	}
