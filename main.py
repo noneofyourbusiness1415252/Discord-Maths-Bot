@@ -158,12 +158,12 @@ async def pr_error(ctx, error):
 	),
 )
 async def powerrange(ctx, start, end, file=""):
-	start, end = discordnum(ctx, start, end)
+	start, end = int(discordnum(ctx, start)), int(discordnum(ctx, end))
 	await send(
 		ctx,
 		file,
 		title=f"nth powers between {start} and {end}:",
-		description=nthpowers(int(start), int(end)),
+		description=nthpowers(start, end),
 	)
 
 
@@ -177,7 +177,8 @@ async def pwr_error(ctx, error):
  Example:
 `=npwr 1 1000` to find squares, cubes etc. between 1 and 100. 
 This was the error encountered:
-  ```diff\n-{str(error)}```""",
+  ```diff
+-{str(error)}```""",
 	)
 
 
@@ -744,7 +745,7 @@ async def lsc(ctx, limit, *langs):
 				number=1,
 			)
 		except Exception as err:
-			message += f"{i}:\n> ```diff\n-{str(err)}```\n"
+			message += f"{i}:\n> ```{str(err)}```\n"
 			continue
 		fastest = min(times, key=times.get)
 	for i in sorted(times, key=times.get):
@@ -768,7 +769,7 @@ async def lsc_error(ctx, error):
 			"Please make sure your command makes sense and is in the format"
 			" `=lsc <limit> <languages...>`.\nExample: `=lsc 100 Rust C++` to"
 			" compare Rust and C++ on listing primes up to 100\nThis was the"
-			f" error encountered: {error}"
+			f" error encountered: ```diff\n-{error}```"
 		),
 	)
 

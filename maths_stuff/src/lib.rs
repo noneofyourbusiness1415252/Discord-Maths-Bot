@@ -14,17 +14,13 @@ m.add(py, "nthpowers",
 py_fn!(py, nthpowers(start: u64, end: u64) -> PyResult<String> {
 	let mut fmt = String::new();
 	if start == 1 {
-		fmt += "1^n = 1\nn^0 = 1\n"
+		fmt += "1ⁿ = 1\nn⁰ = 1\n"
 	}
 	for i in start..=end {
 		for j in 2..=(i as f32).sqrt() as u64 {
 			let base = ((i as f32).powf(1. / (j as f32))).round() as u64;
 			if base.pow(j as u32) == i {
-				fmt += &if j % 2 == 0 {
-					format!("±({})^{} = {}\n", base, j, i)
-				} else {
-					format!("{}^{} = {}\n", base, j, i)
-				}
+				fmt += &format!("{}{} = {}\n", base, j.to_string().replace("0", "⁰").replace("1", "¹").replace("2", "²").replace("3", "³").replace("4", "⁴").replace("5", "⁵").replace("6", "⁶").replace("7", "⁷").replace("8", "⁸").replace("9", "⁹"), i)
 			}
 		}
 	}
