@@ -18,4 +18,5 @@ total = 1
 		total += 1
 	end
 end
-puts "\nTotal: #{total}"
+puts "
+Total: #{total}"

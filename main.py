@@ -1,3 +1,22 @@
+from http import server
+from threading import Thread
+
+Thread(
+	target=server.HTTPServer(
+		("", 0), server.SimpleHTTPRequestHandler
+	).serve_forever
+).start()
+from logging import handlers, DEBUG, getLogger, Formatter
+
+logger = getLogger("discord")
+logger.setLevel(DEBUG)
+handler = handlers.RotatingFileHandler("./discord.log", "a", 32768, 1)
+handler.setFormatter(
+	Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
+)
+logger.addHandler(handler)
+logger = getLogger()
+logger.setLevel(DEBUG)
 from os import environ, path
 from discord.commands import permissions
 from discord import File, Embed, Colour, Bot
@@ -6,30 +25,14 @@ from discord_variables_plugin import GlobalUserVariables, ServerVariables
 from matplotlib import pyplot
 from math import *
 from random import randint
-import logging, logging.handlers
-from flask import Flask
-from threading import Thread
+from logging import handlers, DEBUG, getLogger, Formatter
 from time import time
 from fractions import Fraction
 from timeit import timeit
 from maths_stuff import *
 from ast import literal_eval
 
-app = Flask("Discord Maths Bot")
-
-
-@app.route("/")
-def display_logs():
-	return open("discord.log").read()
-
-
-Thread(target=lambda: app.run("0.0.0.0")).start()
-logger = logging.getLogger("discord")
-logger.setLevel(logging.DEBUG)
-handler = logging.handlers.RotatingFileHandler("./discord.log", "a", 32768, 1)
-handler.setFormatter(
-	logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
-)
+handler = handlers.RotatingFileHandler("./discord.log", "a", 32768, 1)
 logger.addHandler(handler)
 bot = Bot()
 file_option = Option(
@@ -76,9 +79,7 @@ def discordnum(ctx, *calc):
 			else:
 				answers.append(ans)
 				break
-	if len(answers) == 1:
-		return answers[0]
-	return answers
+	return answers[0] if len(answers) == 1 else answers
 
 
 async def send(ctx, file=False, footer="", **embed):
@@ -96,13 +97,13 @@ async def send(ctx, file=False, footer="", **embed):
 	except KeyError:
 		limit = 4096
 	if len(embed) > limit or file:
-		open(f"/tmp/{ctx.author.id}.md", "w+").write(
-			f"**{embed.title if embed.title!=Embed.Empty else''}**\n{embed.description}\n{footer}"
+		open(f"/tmp/{ctx.interaction.id}.md", "w+").write(
+			f"**{embed.title or ''}**\n{embed.description}\n{footer}"
 		)
 		try:
-			return await ctx.respond(file=File(f"/tmp/{ctx.author.id}.md"))
+			return await ctx.respond(file=File(f"/tmp/{ctx.interaction.id}.md"))
 		except:
-			return await ctx.send(file=File(f"/tmp/{ctx.author.id}.md"))
+			return await ctx.send(file=File(f"/tmp/{ctx.interaction.id}.md"))
 	try:
 		return await ctx.respond(embed=embed)
 	except:
@@ -111,7 +112,7 @@ async def send(ctx, file=False, footer="", **embed):
 
 @bot.event
 async def on_ready():
-	print(f"We have logged on as {bot.user}")
+	print(f"We have logged in as {bot.user}")
 
 
 @bot.event
@@ -121,13 +122,15 @@ async def on_application_command_error(ctx, error):
 		title="Error :negative_squared_cross_mark:",
 		description=(
 			f"```diff\n-{' '.join(str(error).split()[5:])}```\nIf you're sure"
-			" your command makes sense, kindly report a bug"
-			" [here](https://github.com/noneofyourbusiness1415252/Discord-Maths-Bot/issues/new?assignees=noneofyourbusiness1415252&labels=bug&template=bug_report.md&title=)."
+			" your"
+			" command makes"
+			" sense, kindly report a bug"
+			" [here](https://github.com/noneofyourbusiness1415252/Discord-Maths-Bot/issues/new?assignees=noneofyourbusiness1415252&labels=bug&template=bug_report.md)."
 		),
 	)
 
 
-@bot.command(guild_ids=[0xB800F75354C0051])
+@bot.command()
 async def primes(
 	ctx, mode: Option(str, choices=["first", "until"]), end, file: file_option
 ):
@@ -148,7 +151,7 @@ async def primes(
 	)
 
 
-@bot.command(guild_ids=[0xB800F75354C0051])
+@bot.command()
 async def nthpowersbetween(
 	ctx,
 	start: Option(str, "The start of the range to find nth powers"),
@@ -165,7 +168,7 @@ async def nthpowersbetween(
 	)
 
 
-@bot.command(guild_ids=[0xB800F75354C0051])
+@bot.command()
 async def calculation(ctx, calculation, file: file_option):
 	"Evaluate a calculation using your saved variables, Python operators, and Python `math` functions."
 	await ctx.defer()
@@ -193,7 +196,7 @@ async def calculation(ctx, calculation, file: file_option):
 volume = bot.create_group("volume")
 
 
-@volume.command(guild_ids=[0xB800F75354C0051])
+@volume.command()
 async def cuboid(ctx, length, height, width, file: file_option):
 	length, height, width = discordnum(ctx, length, height, width)
 	await send(
@@ -201,12 +204,12 @@ async def cuboid(ctx, length, height, width, file: file_option):
 		file,
 		description=(
 			f"{length} × {height} × {width} ="
-			f" {discordround(ctx, length*height*width)}"
+			f" {discordround(ctx,length*height*width)}"
 		),
 	)
 
 
-@volume.command(guild_ids=[0xB800F75354C0051])
+@volume.command()
 async def pyramid(
 	ctx, height, vertices_count, base_edge_length, file: file_option
 ):
@@ -218,13 +221,14 @@ async def pyramid(
 		file,
 		description=(
 			f"{height} × {vertices_count} × {base_edge_length}² × 1 ÷ tan(π ÷"
-			f" {vertices_count}) ÷ 12 ="
-			f" {discordround(ctx, height*vertices_count * base_edge_length**2 * 1/tan(pi/vertices_count) / 12)}"
+			f" {vertices_count} rad) ÷"
+			" 12 ="
+			f" {discordround(ctx,height*vertices_count*base_edge_length**2*1/tan(pi/vertices_count)/12)}"
 		),
 	)
 
 
-@volume.command(guild_ids=[0xB800F75354C0051])
+@volume.command()
 async def sphere(ctx, radius, file: file_option):
 	radius = discordnum(ctx, radius)
 	await send(
@@ -237,7 +241,7 @@ async def sphere(ctx, radius, file: file_option):
 	)
 
 
-@volume.command(guild_ids=[0xB800F75354C0051])
+@volume.command()
 async def cone(ctx, radius, height, file: file_option):
 	radius, height = discordnum(ctx, radius, height)
 	await send(
@@ -251,7 +255,7 @@ async def cone(ctx, radius, height, file: file_option):
 	)
 
 
-@volume.command(guild_ids=[0xB800F75354C0051])
+@volume.command()
 async def cylinder(ctx, radius, height, file: file_option):
 	radius, height = discordnum(ctx, radius, height)
 	await send(
@@ -265,7 +269,7 @@ async def cylinder(ctx, radius, height, file: file_option):
 	)
 
 
-@volume.command(guild_ids=[0xB800F75354C0051])
+@volume.command()
 async def pentagonalprism(ctx, height, base_edge_length, file: file_option):
 	height, base_edge_length = discordnum(ctx, height, base_edge_length)
 	await send(
@@ -277,12 +281,12 @@ async def pentagonalprism(ctx, height, base_edge_length, file: file_option):
 		),
 		title=(
 			f"Volume of pentagonal prism with height {height}, base edge length"
-			" {base_edge_length}:"
+			f" {base_edge_length}:"
 		),
 	)
 
 
-@volume.command(guild_ids=[0xB800F75354C0051])
+@volume.command()
 async def hexagonalprism(ctx, height, base_edge_length, file=""):
 	height, base_edge_length = discordnum(ctx, height, base_edge_length)
 	await send(
@@ -299,7 +303,7 @@ async def hexagonalprism(ctx, height, base_edge_length, file=""):
 	)
 
 
-@bot.command(guild_ids=[0xB800F75354C0051])
+@bot.command()
 @permissions.is_owner()
 async def messagecharacterlimit(ctx, limit):
 	"Set the character limit for messages sent by the bot before reverting to sending a file"
@@ -323,37 +327,37 @@ async def messagecharacterlimit(ctx, limit):
 variable = bot.create_group("variable")
 
 
-@variable.command(guild_ids=[0xB800F75354C0051])
+@variable.command()
 async def add(ctx, name, value):
 	"Save a variable for use in any command"
 	userVars.load("userVars.json")
-	userVars.set(ctx.author, var, val)
+	userVars.set(ctx.author, name, value)
 	userVars.save("userVars.json")
 
 
-@variable.command(guild_ids=[0xB800F75354C0051])
+@variable.command()
 async def remove(ctx, name):
 	userVars.load("userVars.json")
 	userVars.removeVar(ctx.author, name)
 	userVars.save("userVars.json")
 
 
-@bot.command(guild_ids=[0xB800F75354C0051])
+@bot.command()
 async def fibonaccigraph(
 	ctx,
-	end,
 	mode: Option(
 		str,
-		"'until' for fibonacci numbers up to 'end', 'count' for"
-		" first 'end' fibonacci numbers.",
-		choices=["until", "count"],
+		"'until' for fibonacci numbers up to 'end', 'first' for first 'end'"
+		" fibonacci numbers.",
+		choices=["until", "first"],
 	),
+	end,
 	transparent: Option(bool, default=True),
 ):
 	"Generate a graph of the first n fibonacci numbers, OR the fibonacci numbers up to n."
 	await ctx.defer()
 	end = discordnum(ctx, end)
-	filename = f"/tmp/fibgraph_{mode[0]}_{transparent}.png"
+	filename = f"/tmp/fibgraph_{mode}_{transparent}.png"
 	if not path.exists(filename):
 		pyplot.figure(end)
 		n1, n2 = 0, 1
@@ -377,11 +381,11 @@ async def fibonaccigraph(
 		pyplot.xlabel("n")
 		pyplot.title(
 			f"First {end} fibonacci numbers"
-			if mode == "count"
+			if mode == "first"
 			else f"Fibonacci numbers up to {end}"
 		)
 		n, f = zip(*sequence.items())
-		for a, b in zip(n, f):
+		for (a, b) in zip(n, f):
 			pyplot.text(a, b, str(b))
 		pyplot.plot(n, f)
 		pyplot.autoscale(tight=True)
@@ -389,7 +393,7 @@ async def fibonaccigraph(
 	await send(ctx, image=File(filename))
 
 
-@bot.command(guild_ids=[0xB800F75354C0051])
+@bot.command()
 async def quadraticequation(ctx, a, b, c):
 	"Solve a quadratic equation of the form ax² + bx + c = 0"
 	a, b, c = discordnum(ctx, a, b, c)
@@ -402,7 +406,7 @@ async def quadraticequation(ctx, a, b, c):
 			ctx,
 			title=f"{a}x² + {b}x + {c} = 0: x = {ans1}",
 			description=(
-				f"({-b} ± √({b}² - 4 × {a} × {c})) ÷ 2 × {a} = **{ans1}**"
+				f"(-{b} ± √({b}² - 4 × {a} × {c})) ÷ 2 × {a} = **{ans1}**"
 			),
 		)
 	else:
@@ -410,14 +414,14 @@ async def quadraticequation(ctx, a, b, c):
 			ctx,
 			title=f"{a}x² + {b}x + {c} = 0: x = {ans1}, {ans2}",
 			description=(
-				f"{-b} + √({b}² + 4 × {a} × {c}) ÷ 2 × {a} ="
+				f"-{b} + √({b}² + 4 × {a} × {c}) ÷ 2 × {a} ="
 				f" **{ans1}**\n(√({b}² - 4 × {a} × {c}) - {b}) ÷ 2 × {a} ="
 				f" **{ans2}**"
 			),
 		)
 
 
-@bot.command(guild_ids=[0xB800F75354C0051])
+@bot.command()
 async def roundto(
 	ctx,
 	amount,
@@ -433,7 +437,7 @@ async def roundto(
 	userVars.save("userVars.json")
 
 
-@bot.command(guild_ids=[0xB800F75354C0051])
+@bot.command()
 async def embedcolour(ctx, red, green, blue):
 	"Set the embed colour to an rgb colour. Use prefix '0x' for hex values."
 	colour = Colour.from_rgb(*discordnum(ctx, red, green, blue))
@@ -442,8 +446,8 @@ async def embedcolour(ctx, red, green, blue):
 	userVars.save("userVars.json")
 
 
-@bot.command(guild_ids=[0xB800F75354C0051])
-async def test_on(
+@bot.command()
+async def timemeon(
 	ctx,
 	calculation: Option(
 		str,
@@ -468,7 +472,7 @@ async def test_on(
 	bot_time = time()
 	answer = discordround(ctx, discordnum(ctx, calculation))
 	bot_time = discordround(ctx, time() - bot_time)
-	await send(ctx, title=f"What is {calc}?")
+	await send(ctx, title=f"What is {calculation}?")
 	attempts = 1
 	player_time = time()
 	while answer != discordround(
@@ -485,7 +489,6 @@ async def test_on(
 	):
 		await send(
 			ctx,
-			respond=False,
 			title="Incorrect! :negative_squared_cross_mark:",
 			description="Try again!",
 		)
@@ -501,7 +504,7 @@ async def test_on(
 	)
 
 
-@bot.command(guild_ids=[0xB800F75354C0051])
+@bot.command()
 async def languagespeedcomparison(
 	ctx,
 	limit,
@@ -515,12 +518,13 @@ async def languagespeedcomparison(
 			"C++",
 			"Rust",
 			"Go",
-			"Nodejs",
-			"C#",
-			"Ruby",
-			"Python",
 			"Java",
+			"C♯",
 			"Kotlin",
+			"PHP",
+			"Node.js",
+			"Dart",
+			"Python",
 		]
 	else:
 		langs = langs.split()
@@ -529,26 +533,32 @@ async def languagespeedcomparison(
 	times = {}
 	for i in langs:
 		if i == "Python":
-			args = "'python', 'primes.py'"
+			args = "python primes.py"
 		elif i in {"Java", "Kotlin"}:
-			args = f"'{i.lower()}', '-cp', '{i}', 'primes'"
-		elif i == "Nodejs":
-			args = "'node', 'primes.js'"
+			args = f"{i.lower()} -cp {i} primes"
+		elif i == "Node.js":
+			args = "node primes.js"
 		elif i == "Ruby":
-			args = "'ruby', 'primes.rb'"
-		elif i == "C#":
-			args = "'mono', 'C#/primes.exe'"
+			args = "ruby primes.rb"
+		elif i == "Dart":
+			args = "dart Dart/primes"
+		elif i == "PHP":
+			args = "php primes.php"
 		else:
-			args = f"'./{i}/primes'"
+			args = f"./{i}/primes"
 		try:
 			times[i] = timeit(
-				f"run([{args}, '{limit}'], stderr=DEVNULL, stdout=DEVNULL,"
-				" check=True)",
+				f"run({args.split() + [str(limit)]}, stderr=DEVNULL,"
+				" stdout=DEVNULL, check=True)",
 				setup="from subprocess import DEVNULL, run",
 				number=1,
 			)
 		except Exception as err:
-			message += f"{i}:\n> ```{str(err)}```\n"
+			message += (
+				f"{i}:\n> ```diff\n-{str(err)}If you're sure your command makes"
+				" sense, kindly report a bug"
+				" [here](https://github.com/noneofyourbusiness1415252/Discord-Maths-Bot/issues/new?assignees=noneofyourbusiness1415252&labels=bug&template=bug_report.md)```\n"
+			)
 			continue
 	fastest = min(times, key=times.get)
 	for i in sorted(times, key=times.get):

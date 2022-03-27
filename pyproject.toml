@@ -1,14 +1,13 @@
 [tool]
 [tool.black]
-preview = true
 line-length = 80
+preview = true
 [tool.poetry]
 authors = ["Umar Sharief"]
 description = "A discord maths bot with functions for quadratic equations, primes, nth powers (e.g. squares, cubes), volume and a calculator."
 name = "Umar's Discord Maths Bot"
 version = "0.1.0"
 [tool.poetry.dependencies]
-Flask = "*"
 black = "*"
 discord-variables-plugin = "*"
 matplotlib = "*"

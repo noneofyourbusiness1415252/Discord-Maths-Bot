@@ -1,20 +1,18 @@
 #include <cmath>
-#include <iostream>
-#include <string>
-using namespace std;
+#include <cstdio>
+#include <cstdlib>
 int main(int, char **argv) {
-	ios_base::sync_with_stdio(false);
-	cout << 2;
-	unsigned limit = stoi(argv[1]), half = limit / 2, total = 1,
+	printf("2");
+	unsigned limit = atoi(argv[1]), half = limit / 2, total = 1,
 			 isqrt = sqrt(limit);
 	auto sieve = new bool[half]();
-	for (unsigned i = 3; i <= isqrt; i += 2)
+	for (auto i = 3u; i <= isqrt; i += 2)
 		if (!sieve[i / 2])
-			for (unsigned j = i * i / 2; j < half; j += i) sieve[j] = true;
-	for (unsigned i = 1; i < half; i++)
+			for (auto j = i * i / 2; j < half; j += i) sieve[j] = true;
+	for (auto i = 1u; i < half; i++)
 		if (!sieve[i]) {
-			cout << ", " << 2 * i + 1;
+			printf(", %u", 2 * i + 1);
 			total++;
 		}
-	cout << "\nTotal: " << total << '\n';
+	printf("\nTotal: %u\n", total);
 }

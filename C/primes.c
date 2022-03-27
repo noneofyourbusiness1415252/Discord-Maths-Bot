@@ -11,8 +11,8 @@ int main(int argc, char **argv) {
 			for (unsigned j = i * i / 2; j < half; j += i) sieve[j] = 1;
 	for (unsigned i = 1; i < half; i++)
 		if (!sieve[i]) {
-			printf(", %d", 2 * i + 1);
+			printf(", %u", 2 * i + 1);
 			total++;
 		}
-	printf("\nTotal: %d\n", total);
+	printf("\nTotal: %u\n", total);
 }

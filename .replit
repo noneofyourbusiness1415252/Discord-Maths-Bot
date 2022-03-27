@@ -1,4 +1,4 @@
 language = "python3"
-run = "cd maths_stuff; cargo fmt; maturin develop --release --strip; cd ..; black main.py -v; sed -i 's/    /	/g' main.py; python main.py"
+run = "(black main.py -v; sed -i 's/    /	/g' main.py) & python main.py"
 [packager]
 guessImports = false
