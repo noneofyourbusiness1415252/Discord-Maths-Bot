@@ -6,17 +6,6 @@ Thread(
 		("", 0), server.SimpleHTTPRequestHandler
 	).serve_forever
 ).start()
-from logging import handlers, DEBUG, getLogger, Formatter
-
-logger = getLogger("discord")
-logger.setLevel(DEBUG)
-handler = handlers.RotatingFileHandler("./discord.log", "a", 32768, 1)
-handler.setFormatter(
-	Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
-)
-logger.addHandler(handler)
-logger = getLogger()
-logger.setLevel(DEBUG)
 from os import environ, path
 from discord.commands import permissions
 from discord import File, Embed, Colour, Bot
@@ -31,8 +20,14 @@ from fractions import Fraction
 from timeit import timeit
 from maths_stuff import *
 from ast import literal_eval
+from logging import handlers, DEBUG, getLogger, Formatter
 
+logger = getLogger("discord")
+logger.setLevel(DEBUG)
 handler = handlers.RotatingFileHandler("./discord.log", "a", 32768, 1)
+handler.setFormatter(
+	Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
+)
 logger.addHandler(handler)
 bot = Bot()
 file_option = Option(
@@ -169,7 +164,7 @@ async def nthpowersbetween(
 
 
 @bot.command()
-async def calculation(ctx, calculation, file: file_option):
+async def calculate(ctx, calculation, file: file_option):
 	"Evaluate a calculation using your saved variables, Python operators, and Python `math` functions."
 	await ctx.defer()
 	unrounded = discordnum(ctx, calculation)
@@ -510,7 +505,7 @@ async def languagespeedcomparison(
 	limit,
 	langs: Option(str, "Separate language names with spaces", default="all"),
 ):
-	"Benchmark 10 programming languages using primes calculator"
+	"Benchmark 12 programming languages using primes calculator"
 	message, limit = "", int(discordnum(ctx, limit))
 	if langs == "all":
 		langs = [
@@ -518,13 +513,14 @@ async def languagespeedcomparison(
 			"C++",
 			"Rust",
 			"Go",
+			"Kotlin",
 			"Java",
 			"C♯",
-			"Kotlin",
 			"PHP",
 			"Node.js",
 			"Dart",
 			"Python",
+			"Ruby",
 		]
 	else:
 		langs = langs.split()
@@ -554,11 +550,7 @@ async def languagespeedcomparison(
 				number=1,
 			)
 		except Exception as err:
-			message += (
-				f"{i}:\n> ```diff\n-{str(err)}If you're sure your command makes"
-				" sense, kindly report a bug"
-				" [here](https://github.com/noneofyourbusiness1415252/Discord-Maths-Bot/issues/new?assignees=noneofyourbusiness1415252&labels=bug&template=bug_report.md)```\n"
-			)
+			message += f"{i}:\n> ```{err}```\n"
 			continue
 	fastest = min(times, key=times.get)
 	for i in sorted(times, key=times.get):

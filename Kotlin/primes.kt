@@ -1,3 +1,4 @@
+@file:JvmName("primes")
 fun main(args: Array<String>) {
 	print(2u)
 	val limit = args[0].toUInt()
