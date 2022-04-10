@@ -64,16 +64,14 @@ def discordnum(ctx, *calc):
 	for i in calc:
 		while True:
 			try:
-				ans = eval(str(i))
+				answers.append(eval(str(i)))
+				break
 			except NameError as e:
 				for j in str(e).split():
 					if "'" in j:
 						var = j.replace("'", "")
 						break
 				i = i.replace(var, userVars.get(ctx.author, var))
-			else:
-				answers.append(ans)
-				break
 	return answers[0] if len(answers) == 1 else answers
 
 
@@ -565,4 +563,10 @@ async def languagespeedcomparison(
 	)
 
 
-bot.run(environ["TOKEN"])
+try:
+	bot.run(environ["TOKEN"])
+except:
+	print("Rate-limit detected. Restarting repl")
+	from os import kill
+
+	kill(1, 15)
