@@ -348,14 +348,13 @@ async def fibonaccigraph(
 	transparent: Option(bool, default=True),
 ):
 	"Generate a graph of the first n fibonacci numbers, OR the fibonacci numbers up to n."
-	await ctx.defer()
 	end = discordnum(ctx, end)
-	filename = f"/tmp/fibgraph_{mode}_{transparent}.png"
+	filename = f"/tmp/fibgraph{mode}{end}{transparent}.png"
 	if not path.exists(filename):
 		pyplot.figure(end)
 		n1, n2 = 0, 1
 		sequence = {}
-		if mode == "until":
+		if mode == "first":
 			for i in range(1, end + 1):
 				sequence[i] = n1
 				nth = n1 + n2
@@ -383,7 +382,7 @@ async def fibonaccigraph(
 		pyplot.plot(n, f)
 		pyplot.autoscale(tight=True)
 		pyplot.savefig(filename, transparent=transparent)
-	await send(ctx, image=File(filename))
+	await ctx.send(file=File(filename))
 
 
 @bot.command()
