@@ -8,7 +8,7 @@ Thread(
 ).start()
 from os import environ, path
 from discord.commands import permissions
-from discord import File, Embed, Colour, Bot
+from discord import File, Embed, Colour, Bot, Intents
 from discord.commands import Option
 from discord_variables_plugin import GlobalUserVariables, ServerVariables
 from matplotlib import pyplot
@@ -29,7 +29,7 @@ handler.setFormatter(
 	Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
 )
 logger.addHandler(handler)
-bot = Bot()
+bot = Bot(intents=Intents(message_content=True, messages=True))
 file_option = Option(
 	bool,
 	"Whether or not you want the result to be sent in a file.",
@@ -377,7 +377,7 @@ async def fibonaccigraph(
 			else f"Fibonacci numbers up to {end}"
 		)
 		n, f = zip(*sequence.items())
-		for (a, b) in zip(n, f):
+		for a, b in zip(n, f):
 			pyplot.text(a, b, str(b))
 		pyplot.plot(n, f)
 		pyplot.autoscale(tight=True)
@@ -473,8 +473,8 @@ async def timemeon(
 			(
 				await bot.wait_for(
 					"message",
-					check=lambda m: m.channel.id == ctx.channel.id
-					and m.author == ctx.author,
+					check=lambda m: m.author == ctx.author
+					and m.channel == ctx.channel,
 				)
 			).content.replace(" ", "")
 		),
