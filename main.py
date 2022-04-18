@@ -502,7 +502,7 @@ async def languagespeedcomparison(
 	limit,
 	langs: Option(str, "Separate language names with spaces", default="all"),
 ):
-	"Benchmark 12 programming languages using primes calculator"
+	"Benchmark 14 programming languages using primes calculator"
 	message, limit = "", int(discordnum(ctx, limit))
 	if langs == "all":
 		langs = [
@@ -510,14 +510,16 @@ async def languagespeedcomparison(
 			"C++",
 			"Rust",
 			"Go",
-			"Kotlin",
+			"Swift",
 			"Java",
 			"C♯",
 			"PHP",
-			"Node.js",
+			"Kotlin",
 			"Dart",
+			"Node.js",
 			"Python",
 			"Ruby",
+			"R",
 		]
 	else:
 		langs = langs.split()
@@ -537,8 +539,10 @@ async def languagespeedcomparison(
 			args = "dart Dart/primes"
 		elif i == "PHP":
 			args = "php primes.php"
+		elif i == "R":
+			args = "Rscript primes.r"
 		else:
-			args = f"./{i}/primes"
+			args = f"{i}/primes"
 		try:
 			times[i] = timeit(
 				f"run({args.split() + [str(limit)]}, stderr=DEVNULL,"

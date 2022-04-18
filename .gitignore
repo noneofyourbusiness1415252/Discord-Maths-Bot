@@ -1,3 +1,6 @@
 *.log*
 __pycache__
-maths_stuff/target
+*/primes
+*/primes.class
+poetry.lock
+*.json

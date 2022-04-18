@@ -1,4 +1,4 @@
-package primes
+package main
 
 import (
 	"math"
