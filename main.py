@@ -164,7 +164,6 @@ async def nthpowersbetween(
 @bot.command()
 async def calculate(ctx, calculation, file: file_option):
 	"Evaluate a calculation using your saved variables, Python operators, and Python `math` functions."
-	await ctx.defer()
 	unrounded = discordnum(ctx, calculation)
 	footer = ""
 	ans = discordround(ctx, unrounded)
