@@ -33,8 +33,10 @@ for i in $@; do
 	Swift)
 		swiftc -Ounchecked -Xlinker -lm primes.swift
 		;;
+	maths_stuff)
+		maturin develop --release --strip
 	esac
-	if [[ $i != @(Java|Kotlin|Dart) ]]; then
+	if [[ $i != @(Java|Kotlin|Dart|maths_stuff) ]]; then
 		./primes 1000
 	fi
 done
