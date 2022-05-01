@@ -3,4 +3,4 @@ __pycache__
 */primes
 */primes.class
 poetry.lock
-*Vars.json
+*.json
