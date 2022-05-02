@@ -457,7 +457,9 @@ async def timemeon(
 			letter = calculation[i + 1]
 			if not letter in vars:
 				vars[letter] = str(randint(*discordnum(ctx, start, end)))
-			calculation = calculation[:i] + vars[letter] + calculation[i + 2 :]
+			calculation = (
+				f"{calculation[:i]} {vars[letter]}{calculation[i + 2 :]}"
+			)
 		else:
 			i += 1
 	bot_time = time()
