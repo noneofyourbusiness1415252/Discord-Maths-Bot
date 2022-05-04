@@ -457,15 +457,13 @@ async def timemeon(
 			letter = calculation[i + 1]
 			if not letter in vars:
 				vars[letter] = str(randint(*discordnum(ctx, start, end)))
-			calculation = (
-				f"{calculation[:i]} {vars[letter]}{calculation[i + 2 :]}"
-			)
+			calculation = calculation[:i] + vars[letter] + calculation[i + 2 :]
 		else:
 			i += 1
 	bot_time = time()
 	answer = discordround(ctx, discordnum(ctx, calculation))
 	bot_time = discordround(ctx, time() - bot_time)
-	await send(ctx, title=f"What is {calculation}?")
+	await send(ctx, title="Evaluate:", description=f"```py\n{calculation}```")
 	attempts = 1
 	player_time = time()
 	while answer != discordround(
@@ -491,8 +489,8 @@ async def timemeon(
 		title="Correct! :white_check_mark:",
 		description=(
 			f"That took you **{attempts}** attempt(s), and"
-			f" **{discordround(ctx,time()-player_time)}** seconds.\nI took"
-			f" **{bot_time}** seconds."
+			f" **{discordround(ctx,time()-player_time)}** second(s).\nI took"
+			f" **{bot_time}** second(s)."
 		),
 	)
 
