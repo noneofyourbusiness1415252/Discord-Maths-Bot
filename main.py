@@ -8,7 +8,7 @@ Thread(
 ).start()
 from os import environ, path
 from discord.commands import permissions
-from discord import File, Embed, Colour, Bot, Intents
+from discord import File, Embed, Colour, Bot, Intents, HTTPException
 from discord.commands import Option
 from discord_variables_plugin import GlobalUserVariables, ServerVariables
 from matplotlib import pyplot
@@ -397,7 +397,9 @@ async def quadraticequation(ctx, a, b, c):
 			ctx,
 			title=f"{a}x² + {b}x + {c} = 0: x = {ans1}",
 			description=(
-				f"(-{b} ± √({b}² - 4 × {a} × {c})) ÷ 2 × {a} = **{ans1}**"
+				f"(-{b} ± √({b}² - 4 × {a} × {c})) ÷ 2 × {a} ="
+				f" **{ans1}**\nFactorised:"
+				f" **(x{'+' if ans1 < 0 else ''}{-ans1})²**"
 			),
 		)
 	else:
@@ -407,7 +409,8 @@ async def quadraticequation(ctx, a, b, c):
 			description=(
 				f"-{b} + √({b}² + 4 × {a} × {c}) ÷ 2 × {a} ="
 				f" **{ans1}**\n(√({b}² - 4 × {a} × {c}) - {b}) ÷ 2 × {a} ="
-				f" **{ans2}**"
+				f" **{ans2}**\nFactorised:"
+				f" **{a}(x{'+' if ans1 < 0 else ''}{-ans1})(x{'+' if ans2 < 0 else ''}{-ans2})**"
 			),
 		)
 
@@ -567,8 +570,11 @@ async def languagespeedcomparison(
 
 try:
 	bot.run(environ["TOKEN"])
-except:
-	print("Rate-limit detected. Restarting repl")
-	from os import kill
+except HTTPException as err:
+	if err.status == 429:
+		from os import kill
 
-	kill(1, 15)
+		open("429.log", "a+").write(str(err))
+		print("Rate-limit detected. Restarting repl")
+		kill(1, 15)
+	print(err)
