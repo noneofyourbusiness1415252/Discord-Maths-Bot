@@ -2,14 +2,11 @@ from http import server
 from threading import Thread
 
 Thread(
-	target=server.HTTPServer(
-		("", 0), server.SimpleHTTPRequestHandler
-	).serve_forever
+	target=server.HTTPServer(("", 0), server.SimpleHTTPRequestHandler).serve_forever
 ).start()
-from os import environ, path
-from discord.commands import permissions
+from os import environ, path, kill
 from discord import File, Embed, Colour, Bot, Intents, HTTPException
-from discord.commands import Option
+from discord.commands import Option, default_permissions
 from discord_variables_plugin import GlobalUserVariables, ServerVariables
 from matplotlib import pyplot
 from math import *
@@ -21,14 +18,11 @@ from timeit import timeit
 from maths_stuff import *
 from ast import literal_eval
 from logging import handlers, DEBUG, getLogger, Formatter
-from asyncio import sleep
 
 logger = getLogger("discord")
 logger.setLevel(DEBUG)
 handler = handlers.RotatingFileHandler("./discord.log", "a", 32768, 1)
-handler.setFormatter(
-	Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
-)
+handler.setFormatter(Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
 logger.addHandler(handler)
 bot = Bot(intents=Intents(message_content=True, messages=True))
 file_option = Option(
@@ -196,16 +190,13 @@ async def cuboid(ctx, length, height, width, file: file_option):
 		ctx,
 		file,
 		description=(
-			f"{length} × {height} × {width} ="
-			f" {discordround(ctx,length*height*width)}"
+			f"{length} × {height} × {width} = {discordround(ctx,length*height*width)}"
 		),
 	)
 
 
 @volume.command()
-async def pyramid(
-	ctx, height, vertices_count, base_edge_length, file: file_option
-):
+async def pyramid(ctx, height, vertices_count, base_edge_length, file: file_option):
 	height, vertices_count, base_edge_length = discordnum(
 		ctx, height, vertices_count, base_edge_length
 	)
@@ -227,9 +218,7 @@ async def sphere(ctx, radius, file: file_option):
 	await send(
 		ctx,
 		file,
-		description=(
-			f"4 ÷ 3 × π × {radius}³ = {discordround(ctx,4/3*pi*radius**3)}"
-		),
+		description=f"4 ÷ 3 × π × {radius}³ = {discordround(ctx,4/3*pi*radius**3)}",
 		title=f"Volume of sphere with radius {radius}:",
 	)
 
@@ -241,8 +230,7 @@ async def cone(ctx, radius, height, file: file_option):
 		ctx,
 		file,
 		description=(
-			f"π × {radius}² × {height} ÷ 3 ="
-			f" {discordround(ctx,pi*radius**2*height/3)}"
+			f"π × {radius}² × {height} ÷ 3 = {discordround(ctx,pi*radius**2*height/3)}"
 		),
 		title=f"Volume of cone with radius {radius}, height {height}:",
 	)
@@ -255,8 +243,7 @@ async def cylinder(ctx, radius, height, file: file_option):
 		ctx,
 		file,
 		description=(
-			f"π × {radius}² × {height} ="
-			f" {discordround(ctx,pi*radius**2*height)}"
+			f"π × {radius}² × {height} = {discordround(ctx,pi*radius**2*height)}"
 		),
 		title=f"Volume of cylinder with radius {radius}, height {height}:",
 	)
@@ -297,7 +284,7 @@ async def hexagonalprism(ctx, height, base_edge_length, file=""):
 
 
 @bot.command()
-@permissions.is_owner()
+@default_permissions(administrator=True)
 async def messagecharacterlimit(ctx, limit):
 	"Set the character limit for messages sent by the bot before reverting to sending a file"
 	limit = discordnum(ctx, limit)
@@ -390,9 +377,7 @@ async def quadraticequation(ctx, a, b, c):
 	"Solve a quadratic equation of the form ax² + bx + c = 0"
 	a, b, c = discordnum(ctx, a, b, c)
 	d, dbla = (b**2 - 4 * a * c) ** 0.5, 2 * a
-	ans1, ans2 = discordround(ctx, (d - b) / dbla), discordround(
-		ctx, (-b - d) / dbla
-	)
+	ans1, ans2 = discordround(ctx, (d - b) / dbla), discordround(ctx, (-b - d) / dbla)
 	if ans1 == ans2:
 		await send(
 			ctx,
@@ -476,8 +461,7 @@ async def timemeon(
 			(
 				await bot.wait_for(
 					"message",
-					check=lambda m: m.author == ctx.author
-					and m.channel == ctx.channel,
+					check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
 				)
 			).content.replace(" ", "")
 		),
@@ -503,31 +487,15 @@ async def timemeon(
 async def languagespeedcomparison(
 	ctx,
 	limit,
-	langs: Option(str, "Separate language names with spaces", default="all"),
+	langs: Option(
+		str,
+		"Separate language names with spaces",
+		default="C C++ Rust Go Swift Java C♯ PHP Kotlin Dart Node.js Python Ruby R",
+	),
 ):
 	"Benchmark 14 programming languages using primes calculator"
 	message, limit = "", int(discordnum(ctx, limit))
-	if langs == "all":
-		langs = [
-			"C",
-			"C++",
-			"Rust",
-			"Go",
-			"Swift",
-			"Java",
-			"C♯",
-			"PHP",
-			"Kotlin",
-			"Dart",
-			"Node.js",
-			"Python",
-			"Ruby",
-			"R",
-		]
-	else:
-		langs = langs.split()
-		for i in range(len(langs)):
-			langs[i] = langs[i][0].upper() + langs[i][1:].lower()
+	langs = langs.capwords().split()
 	times = {}
 	for i in langs:
 		if i == "Python":
@@ -573,9 +541,6 @@ try:
 	bot.run(environ["TOKEN"])
 except HTTPException as err:
 	if err.status == 429:
-		from os import kill
-
-		open("429.log", "a+").write(str(err))
 		print("Rate-limit detected. Restarting repl")
 		kill(1, 15)
 	print(err)

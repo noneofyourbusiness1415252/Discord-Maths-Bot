@@ -1,6 +1,5 @@
 [tool]
 [tool.black]
-line-length = 80
 preview = true
 [tool.poetry]
 authors = ["Umar Sharief"]
