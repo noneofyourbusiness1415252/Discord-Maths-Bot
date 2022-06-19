@@ -1,30 +1,20 @@
-from http import server
-from threading import Thread
-
-Thread(
-	target=server.HTTPServer(("", 0), server.SimpleHTTPRequestHandler).serve_forever
-).start()
 from os import environ, path, kill
 from discord import File, Embed, Colour, Bot, Intents, HTTPException
 from discord.commands import Option, default_permissions
 from discord_variables_plugin import GlobalUserVariables, ServerVariables
 from matplotlib import pyplot
 from math import *
-from random import randint
-from logging import handlers, DEBUG, getLogger, Formatter
-from time import time
+from secrets import choice
 from fractions import Fraction
 from timeit import timeit
 from maths_stuff import *
 from ast import literal_eval
-from logging import handlers, DEBUG, getLogger, Formatter
+from time import time, perf_counter
+from disuniter.src.disuniter import keepAlive
 
-logger = getLogger("discord")
-logger.setLevel(DEBUG)
-handler = handlers.RotatingFileHandler("./discord.log", "a", 32768, 1)
-handler.setFormatter(Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
-logger.addHandler(handler)
-bot = Bot(intents=Intents(message_content=True, messages=True))
+bot = Bot()
+bot.owner_id = 828677761303838781
+keepAlive(bot)
 file_option = Option(
 	bool,
 	"Whether or not you want the result to be sent in a file.",
@@ -99,15 +89,10 @@ async def send(ctx, file=False, footer="", **embed):
 
 
 @bot.event
-async def on_ready():
-	print(f"We have logged in as {bot.user}")
-
-
-@bot.event
 async def on_application_command_error(ctx, error):
 	await send(
 		ctx,
-		title="Error :negative_squared_cross_mark:",
+		title="Error ❌",
 		description=(
 			f"```diff\n-{' '.join(str(error).split()[5:])}```\nIf you're sure"
 			" your"
@@ -123,7 +108,7 @@ async def primes(
 	ctx, mode: Option(str, choices=["first", "until"]), end, file: file_option
 ):
 	"Find the first n primes, or the primes up to n"
-	start_time = time()
+	start_time = perf_counter()
 	end = int(discordnum(ctx, end))
 	primelist = (
 		primesupto(end + 1)
@@ -133,7 +118,7 @@ async def primes(
 	await send(
 		ctx,
 		file,
-		f"Time taken: {discordround(ctx,time()-start_time)}",
+		f"Time taken: {discordround(ctx,perf_counter()-start_time)}",
 		title=f"{len(primelist)} primes:",
 		description=str(primelist)[1:-1],
 	)
@@ -438,49 +423,47 @@ async def timemeon(
 	end: Option(str, "Highest value for randoms"),
 ):
 	"Times you on finding the correct answer to a random calculation."
-	serverVars.load("serverVars.json")
+	userVars.load("userVars.json")
 	i = 0
 	vars = {}
+	start, end = discordnum(ctx, start, end)
 	while i < len(calculation):
 		if calculation[i] == "?":
 			letter = calculation[i + 1]
 			if not letter in vars:
-				vars[letter] = str(randint(*discordnum(ctx, start, end)))
+				vars[letter] = str(choice(range(start, end + 1)))
 			calculation = calculation[:i] + vars[letter] + calculation[i + 2 :]
 		else:
 			i += 1
 	bot_time = time()
-	answer = discordround(ctx, discordnum(ctx, calculation))
 	bot_time = discordround(ctx, time() - bot_time)
 	await send(ctx, title="Evaluate:", description=f"```py\n{calculation}```")
 	attempts = 1
-	player_time = time()
-	while answer != discordround(
-		ctx,
-		literal_eval(
-			(
-				await bot.wait_for(
-					"message",
-					check=lambda m: m.author == ctx.author and m.channel == ctx.channel,
-				)
-			).content.replace(" ", "")
-		),
-	):
+	userVars.set(ctx.author, "answer", discordround(ctx, discordnum(ctx, calculation)))
+	userVars.save("userVars.json")
+
+
+@bot.command()
+async def answer(ctx, answer):
+	userVars.load("userVars.json")
+	attempts = 1
+	elapsed = time()
+	if userVars.get(ctx.author, "answer") != answer:
 		await send(
 			ctx,
-			title="Incorrect! :negative_squared_cross_mark:",
+			title="Incorrect! ❌",
 			description="Try again!",
 		)
 		attempts += 1
-	await send(
-		ctx,
-		title="Correct! :white_check_mark:",
-		description=(
-			f"That took you **{attempts}** attempt(s), and"
-			f" **{discordround(ctx,time()-player_time)}** second(s).\nI took"
-			f" **{bot_time}** second(s)."
-		),
-	)
+	else:
+		await send(
+			ctx,
+			title="Correct! ✅",
+			description=(
+				f"That took you **{attempts}** attempt(s), and"
+				f" **{discordround(ctx,time()-elapsed)}** second(s).\n"
+			),
+		)
 
 
 @bot.command()
@@ -542,5 +525,5 @@ try:
 except HTTPException as err:
 	if err.status == 429:
 		print("Rate-limit detected. Restarting repl")
-		kill(1, 15)
+		kill(1, 1)
 	print(err)

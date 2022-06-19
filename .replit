@@ -1,5 +1,5 @@
 language = "python3"
-run = "(black main.py -v; sed -i 's/    /	/g' main.py) & python main.py"
+run = "(black *py -v; sed -i 's/    /	/g' main.py) & python main.py"
 hidden = ["*/primes", "*.so", "*.log*", "*.json", "**/*.lock", "**/target", "matplotlib"]
 [packager]
 guessImports = false

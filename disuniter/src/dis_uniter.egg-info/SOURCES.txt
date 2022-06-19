@@ -1,0 +1,11 @@
+LICENSE
+MANIFEST.in
+README.md
+pyproject.toml
+setup.cfg
+src/dis_uniter.egg-info/PKG-INFO
+src/dis_uniter.egg-info/SOURCES.txt
+src/dis_uniter.egg-info/dependency_links.txt
+src/dis_uniter.egg-info/top_level.txt
+src/disuniter/W.woff2
+src/disuniter/__init__.py
