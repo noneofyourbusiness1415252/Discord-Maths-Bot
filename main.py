@@ -438,30 +438,31 @@ async def timemeon(
 	bot_time = time()
 	bot_time = discordround(ctx, time() - bot_time)
 	await send(ctx, title="Evaluate:", description=f"```py\n{calculation}```")
-	attempts = 1
 	userVars.set(ctx.author, "answer", discordround(ctx, discordnum(ctx, calculation)))
+	userVars.set(ctx.author, "attempts", 0)
 	userVars.save("userVars.json")
 
 
 @bot.command()
 async def answer(ctx, answer):
 	userVars.load("userVars.json")
-	attempts = 1
 	elapsed = time()
-	if userVars.get(ctx.author, "answer") != answer:
+	if userVars.get(ctx.author, "answer") != discordnum(ctx, answer):
 		await send(
 			ctx,
 			title="Incorrect! ❌",
 			description="Try again!",
 		)
-		attempts += 1
+		userVars.set(ctx.author, "attempts", userVars.get(ctx.author, "attempts") + 1)
 	else:
 		await send(
 			ctx,
 			title="Correct! ✅",
 			description=(
-				f"That took you **{attempts}** attempt(s), and"
-				f" **{discordround(ctx,time()-elapsed)}** second(s).\n"
+				f"That took you **{userVars.get(ctx.author,'attempts')}** attempt(s),"
+				" and"
+				f" **{discordround(ctx,userVars.get(ctx.author,'time')-elapsed)}**"
+				" second(s).\n"
 			),
 		)
 
